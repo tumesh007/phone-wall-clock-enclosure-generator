@@ -40,9 +40,6 @@ export function calculateBedFit(config: EnclosureConfig): BedFitStatus {
   const cavY = config.phoneWidth + 2 * config.fitTolerance;
   const outerX = cavX + 2 * config.wallThickness;
   const outerY = cavY + 2 * config.wallThickness;
-  const effectiveThickness = config.phoneThickness + config.caseAllowance;
-  const cavZ = effectiveThickness + 0.5;
-  const chassisDepth = Math.max(config.baseDepth, cavZ + config.frontBezelThick + config.backCoverThick + 2.0);
 
   const bpX = cavX + 6.0 - 0.4;
   const bpY = cavY + 6.0 - 0.4;
@@ -51,7 +48,7 @@ export function calculateBedFit(config: EnclosureConfig): BedFitStatus {
   const bedY = 180.0;
   const bedZ = 180.0;
 
-  const fitsStraight = outerX <= bedX && outerY <= bedY && chassisDepth <= bedZ;
+  const fitsStraight = outerX <= bedX && outerY <= bedY && config.standDepth <= bedZ;
   const diagonalSpan = (outerX + outerY) * Math.SQRT1_2;
   const fitsDiagonal = diagonalSpan <= bedX;
   const canFitBed = fitsStraight || fitsDiagonal;
@@ -65,7 +62,7 @@ export function calculateBedFit(config: EnclosureConfig): BedFitStatus {
     bodyDims: {
       x: Number(outerX.toFixed(2)),
       y: Number(outerY.toFixed(2)),
-      z: Number(chassisDepth.toFixed(2))
+      z: Number(config.standDepth.toFixed(2))
     },
     coverDims: {
       x: Number(bpX.toFixed(2)),
@@ -83,7 +80,7 @@ export function calculateBedFit(config: EnclosureConfig): BedFitStatus {
 }
 
 // -----------------------------------------------------------------------------
-// PART 1: MAIN CLOCK BODY CSG BUILDER (Front Faceplate + Sturdy Body + Base Foot)
+// PART 1: MAIN CLOCK BODY WITH ECHO SHOW 5 SLOPED STAND EXTENSION
 // -----------------------------------------------------------------------------
 export function buildMainClockBodyGeometry(config: EnclosureConfig): THREE.BufferGeometry {
   const effectiveThickness = config.phoneThickness + config.caseAllowance;
@@ -93,16 +90,28 @@ export function buildMainClockBodyGeometry(config: EnclosureConfig): THREE.Buffe
 
   const outerX = cavX + 2 * config.wallThickness;
   const outerY = cavY + 2 * config.wallThickness;
-  const chassisDepth = Math.max(config.baseDepth, cavZ + config.frontBezelThick + config.backCoverThick + 2.0);
   const outerR = Math.max(config.cornerRadius + 2.0, 8.0);
+  const pocketDepth = config.pocketDepth;
+  const standDepth = config.standDepth;
 
-  // 1. Base solid chassis box (extruding backwards from Z=0 to Z=chassisDepth)
-  const outerGeom = createRoundedBoxGeometry(outerX, outerY, chassisDepth, outerR);
-  let bodyBrush = new Brush(outerGeom);
-  bodyBrush.position.set(0, 0, chassisDepth / 2);
+  // 1. Front phone housing block (from Z=0 to Z=pocketDepth)
+  const housingGeom = createRoundedBoxGeometry(outerX, outerY, pocketDepth, outerR);
+  let bodyBrush = new Brush(housingGeom);
+  bodyBrush.position.set(0, 0, pocketDepth / 2);
   bodyBrush.updateMatrixWorld();
 
-  // 2. Active Screen Viewing Window Cutout (through front face at Z=0)
+  // 2. Integrated Sloped Stand Wedge Extension (extends backwards from lower half)
+  const wedgeHeight = 32.0;
+  const wedgeZDepth = standDepth - pocketDepth + 2.0;
+  const wedgeGeom = createRoundedBoxGeometry(outerX - 6.0, wedgeHeight, wedgeZDepth, 6.0);
+  const wedgeBrush = new Brush(wedgeGeom);
+  wedgeBrush.position.set(0, -outerY / 2 + wedgeHeight / 2 + 2.0, pocketDepth + wedgeZDepth / 2 - 1.0);
+  wedgeBrush.updateMatrixWorld();
+  bodyBrush = evaluator.evaluate(bodyBrush, wedgeBrush, ADDITION);
+
+  // --- SUBTRACTIONS ---
+
+  // 1. Active Screen Viewing Window Cutout (through front face at Z=0)
   const winGeom = createRoundedBoxGeometry(
     config.screenLength,
     config.screenWidth,
@@ -114,30 +123,40 @@ export function buildMainClockBodyGeometry(config: EnclosureConfig): THREE.Buffe
   winBrush.updateMatrixWorld();
   bodyBrush = evaluator.evaluate(bodyBrush, winBrush, SUBTRACTION);
 
-  // 3. Open-backed Phone Pocket Cavity (starts behind front bezel, opens to rear)
-  const cavDepth = chassisDepth - config.frontBezelThick + 2.0;
+  // 2. Open-backed Phone Pocket Cavity (starts behind front bezel, opens to rear)
+  const cavDepth = pocketDepth - config.frontBezelThick + 2.0;
   const cavGeom = createRoundedBoxGeometry(cavX, cavY, cavDepth, config.cornerRadius);
   const cavBrush = new Brush(cavGeom);
   cavBrush.position.set(0, 0, config.frontBezelThick + cavDepth / 2);
   cavBrush.updateMatrixWorld();
   bodyBrush = evaluator.evaluate(bodyBrush, cavBrush, SUBTRACTION);
 
-  // 4. Rear Step / Shelf for Hex Back Cover (3.0mm recessed perimeter)
+  // 3. Rear Step / Shelf for Hex Back Cover (recessed perimeter)
   const shelfGeom = createRoundedBoxGeometry(cavX + 6.0, cavY + 6.0, config.backCoverThick + 0.4, config.cornerRadius + 2.0);
   const shelfBrush = new Brush(shelfGeom);
-  shelfBrush.position.set(0, 0, chassisDepth - config.backCoverThick / 2 + 0.1);
+  shelfBrush.position.set(0, 0, config.frontBezelThick + cavZ + (config.backCoverThick + 0.4) / 2);
   shelfBrush.updateMatrixWorld();
   bodyBrush = evaluator.evaluate(bodyBrush, shelfBrush, SUBTRACTION);
 
-  // 5. Open-Rear USB-C Cable Channel (open toward the rear edge so plugged cable drops straight in!)
-  const usbSlotDepth = chassisDepth - config.frontBezelThick + 2.0;
+  // 4. Ergonomic Desk-Stand Angled Foot Plane Cut:
+  // Cuts the bottom plane so when placed on desk, screen sits tilted back by tiltAngle!
+  const cutBoxGeom = new THREE.BoxGeometry(outerX + 40.0, 100.0, standDepth + 40.0);
+  const cutBrush = new Brush(cutBoxGeom);
+  const rad = (config.tiltAngle * Math.PI) / 180;
+  cutBrush.rotation.x = rad;
+  cutBrush.position.set(0, -outerY / 2 - 50.0 * Math.cos(rad), -10.0);
+  cutBrush.updateMatrixWorld();
+  bodyBrush = evaluator.evaluate(bodyBrush, cutBrush, SUBTRACTION);
+
+  // 5. Open Rear USB-C Channel (drop-in from rear without threading)
+  const usbSlotDepth = pocketDepth + 10.0;
   const usbGeom = new THREE.BoxGeometry(
     config.usbSide === 'bottom' ? config.usbWidth : config.wallThickness * 2 + 6.0,
     config.usbSide === 'bottom' ? config.wallThickness * 2 + 6.0 : config.usbWidth,
     usbSlotDepth
   );
   const usbBrush = new Brush(usbGeom);
-  const usbCenterZ = config.frontBezelThick + usbSlotDepth / 2;
+  const usbCenterZ = config.frontBezelThick + cavZ / 2 + 5.0;
   if (config.usbSide === 'right') {
     usbBrush.position.set(outerX / 2, 0, usbCenterZ);
   } else if (config.usbSide === 'left') {
@@ -148,14 +167,13 @@ export function buildMainClockBodyGeometry(config: EnclosureConfig): THREE.Buffe
   usbBrush.updateMatrixWorld();
   bodyBrush = evaluator.evaluate(bodyBrush, usbBrush, SUBTRACTION);
 
-  // 6. Open-Rear Loudspeaker Slots (along bottom wall, open to the rear)
-  const speakerSlotGeom = new THREE.BoxGeometry(3.2, config.wallThickness * 2 + 4.0, usbSlotDepth);
-  for (let i = -3; i >= -6; i--) {
-    const spBrush = new Brush(speakerSlotGeom);
-    spBrush.position.set(outerX / 2 - 25.0 + i * 4.2, -outerY / 2, usbCenterZ);
-    spBrush.updateMatrixWorld();
-    bodyBrush = evaluator.evaluate(bodyBrush, spBrush, SUBTRACTION);
-  }
+  // 6. Rear Cable Pass-Through Arch through the wedge stand
+  const archGeom = createRoundedBoxGeometry(30.0, 36.0, standDepth + 10.0, 6.0);
+  const archBrush = new Brush(archGeom);
+  archBrush.rotation.x = rad;
+  archBrush.position.set(0, -outerY / 2 + 16.0, standDepth / 2);
+  archBrush.updateMatrixWorld();
+  bodyBrush = evaluator.evaluate(bodyBrush, archBrush, SUBTRACTION);
 
   // 7. 4 Corner M3 Screw Boss Pilot Holes
   const bossX = cavX / 2 + 1.8;
@@ -169,7 +187,7 @@ export function buildMainClockBodyGeometry(config: EnclosureConfig): THREE.Buffe
   for (const sx of [-bossX, bossX]) {
     for (const sy of [-bossY, bossY]) {
       const holeBrush = new Brush(holeGeom);
-      holeBrush.position.set(sx, sy, chassisDepth - 7.0);
+      holeBrush.position.set(sx, sy, config.frontBezelThick + cavZ - 1.0);
       holeBrush.updateMatrixWorld();
       bodyBrush = evaluator.evaluate(bodyBrush, holeBrush, SUBTRACTION);
     }

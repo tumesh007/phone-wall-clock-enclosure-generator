@@ -176,7 +176,6 @@ export const Viewer3D: React.FC<Viewer3DProps> = ({ config, fit, onToggleRotate 
     try {
       const effectiveThickness = config.phoneThickness + config.caseAllowance;
       const cavZ = effectiveThickness + 0.5;
-      const chassisDepth = Math.max(config.baseDepth, cavZ + config.frontBezelThick + config.backCoverThick + 2.0);
 
       const cavY = config.phoneWidth + 2 * config.fitTolerance;
       const outerY = cavY + 2 * config.wallThickness;
@@ -222,14 +221,16 @@ export const Viewer3D: React.FC<Viewer3DProps> = ({ config, fit, onToggleRotate 
         // Hex Back Cover seated in rear shelf (moves backwards with exploded slider)
         const coverGeom = buildHexBackCoverGeometry(config);
         const coverMesh = new THREE.Mesh(coverGeom, coverMat);
-        coverMesh.position.set(0, 0, chassisDepth - config.backCoverThick + explode);
+        coverMesh.position.set(0, 0, config.frontBezelThick + cavZ + explode);
         coverMesh.castShadow = true;
         clockGroup.add(coverMesh);
 
         // Position standing upright on table surface
+        // Angled base rests flat at Y=0, screen tilted backwards by tiltAngle
         const standGroup = new THREE.Group();
-        standGroup.position.set(0, outerY / 2, 0);
-        standGroup.rotation.x = Math.PI / 2;
+        const rad = (config.tiltAngle * Math.PI) / 180;
+        standGroup.position.set(0, (outerY / 2) * Math.cos(rad), 0);
+        standGroup.rotation.x = Math.PI / 2 - rad;
         standGroup.add(clockGroup);
 
         modelGroup.add(standGroup);

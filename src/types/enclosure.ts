@@ -36,13 +36,14 @@ export interface EnclosureConfig {
   screenOffsetX: number;
   screenOffsetY: number;
 
-  // Enclosure & Chunky Base Chassis
+  // Enclosure & Echo Show 5 Sloped Stand Extension
   wallThickness: number;
   frontBezelThick: number;
-  baseDepth: number; // Bottom foot depth (>= 20-25mm for rock-solid tabletop stability)
-  topDepth: number;  // Top chassis depth (>= 15-18mm)
-  backCoverThick: number; // 3.0mm
-  screwHoleDiameter: number; // 3.2mm for M3 or self-tapping
+  tiltAngle: number; // Echo Show 5 viewing angle (15 - 20 deg, default 18)
+  standDepth: number; // Deep sloped desk stand footprint (50 - 75 mm, default 58)
+  pocketDepth: number; // Upper phone pocket depth (14 mm)
+  backCoverThick: number; // 3.0 mm
+  screwHoleDiameter: number; // 3.2 mm for M3
 
   // Ports
   usbSide: UsbSide;

@@ -75,20 +75,20 @@ export function exportPartStl(
 
     const effectiveThickness = config.phoneThickness + config.caseAllowance;
     const cavZ = effectiveThickness + 0.5;
-    const chassisDepth = Math.max(config.baseDepth, cavZ + config.frontBezelThick + config.backCoverThick + 2.0);
 
     bodyMesh.position.set(0, 0, 0);
-    coverMesh.position.set(0, 0, chassisDepth - config.backCoverThick);
+    coverMesh.position.set(0, 0, config.frontBezelThick + cavZ);
 
     const standGroup = new THREE.Group();
     standGroup.add(bodyMesh);
     standGroup.add(coverMesh);
 
-    // Stand upright on desk foot
+    // Stand upright on desk foot at ergonomic viewing angle
+    const rad = (config.tiltAngle * Math.PI) / 180;
     const cavY = config.phoneWidth + 2 * config.fitTolerance;
     const outerY = cavY + 2 * config.wallThickness;
-    standGroup.position.set(0, outerY / 2, 0);
-    standGroup.rotation.x = Math.PI / 2;
+    standGroup.position.set(0, (outerY / 2) * Math.cos(rad), 0);
+    standGroup.rotation.x = Math.PI / 2 - rad;
 
     group.add(standGroup);
     group.updateMatrixWorld(true);

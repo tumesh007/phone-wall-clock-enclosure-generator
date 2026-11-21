@@ -337,26 +337,41 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, onChange }) => {
           </div>
         </section>
 
-        {/* Chunky Table Base & Frame */}
+        {/* Echo Show 5 Sloped Stand & Chassis */}
         <section className="space-y-3">
           <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
             <Box className="w-3.5 h-3.5 text-sky-400" />
-            <span>Clock Chassis &amp; Table Base</span>
+            <span>Echo Show 5 Sloped Stand &amp; Chassis</span>
           </label>
 
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <span className="text-[11px] text-slate-400">Table Foot Depth</span>
+              <span className="text-[11px] text-slate-400">Stand Footprint (Z)</span>
               <input
                 type="number"
                 step="1"
-                min="18"
-                max="35"
-                value={config.baseDepth}
-                onChange={(e) => onChange({ baseDepth: parseFloat(e.target.value) || 24 })}
+                min="45"
+                max="80"
+                value={config.standDepth}
+                onChange={(e) => onChange({ standDepth: parseFloat(e.target.value) || 58 })}
                 className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 font-mono text-xs text-slate-100"
               />
             </div>
+            <div>
+              <span className="text-[11px] text-slate-400">Tilt Angle (°)</span>
+              <input
+                type="number"
+                step="1"
+                min="10"
+                max="25"
+                value={config.tiltAngle}
+                onChange={(e) => onChange({ tiltAngle: parseFloat(e.target.value) || 18 })}
+                className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 font-mono text-xs text-slate-100"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
             <div>
               <span className="text-[11px] text-slate-400">Wall Thickness</span>
               <input
@@ -366,6 +381,18 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, onChange }) => {
                 max="4.0"
                 value={config.wallThickness}
                 onChange={(e) => onChange({ wallThickness: parseFloat(e.target.value) || 2.8 })}
+                className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 font-mono text-xs text-slate-100"
+              />
+            </div>
+            <div>
+              <span className="text-[11px] text-slate-400">Upper Pocket Depth</span>
+              <input
+                type="number"
+                step="1"
+                min="10"
+                max="20"
+                value={config.pocketDepth}
+                onChange={(e) => onChange({ pocketDepth: parseFloat(e.target.value) || 14 })}
                 className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 font-mono text-xs text-slate-100"
               />
             </div>
