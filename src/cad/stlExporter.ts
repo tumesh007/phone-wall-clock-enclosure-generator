@@ -2,9 +2,8 @@ import * as THREE from 'three';
 import { STLExporter } from 'three/examples/jsm/exporters/STLExporter.js';
 import { EnclosureConfig } from '../types/enclosure';
 import {
-  buildMainHousingGeometry,
-  buildBackplateGeometry,
-  buildDeskStandGeometry
+  buildMainClockBodyGeometry,
+  buildHexBackCoverGeometry
 } from './geometryBuilder';
 import { generateScadSource } from './scadGenerator';
 
@@ -24,7 +23,7 @@ function triggerBlobDownload(blob: Blob, filename: string) {
 export function downloadScadFile(config: EnclosureConfig) {
   const code = generateScadSource(config);
   const blob = new Blob([code], { type: 'text/plain;charset=utf-8' });
-  const filename = `${config.presetId || 'custom'}_clock_enclosure.scad`;
+  const filename = `${config.presetId || 'custom'}_2part_clock_housing.scad`;
   triggerBlobDownload(blob, filename);
 }
 
@@ -48,77 +47,54 @@ export function exportSingleMeshStl(
 }
 
 export function exportPartStl(
-  partType: 'housing' | 'backplate' | 'stand' | 'assembly',
+  partType: 'main_body' | 'back_cover' | 'assembly',
   config: EnclosureConfig
 ) {
   const prefix = config.presetId || 'custom';
 
-  if (partType === 'housing') {
-    const geom = buildMainHousingGeometry(config);
-    exportSingleMeshStl(geom, `${prefix}_main_housing_print_ready.stl`, (m) => {
-      // Print face-down on build plate
-      m.rotation.x = Math.PI;
-      m.geometry.computeBoundingBox();
-      if (m.geometry.boundingBox) {
-        m.position.z = -m.geometry.boundingBox.min.z;
-      }
+  if (partType === 'main_body') {
+    // Part 1: Main Clock Body (front faceplate + body + base foot)
+    const geom = buildMainClockBodyGeometry(config);
+    exportSingleMeshStl(geom, `${prefix}_part1_clock_body_print_ready.stl`, (m) => {
+      // Already oriented face-down flat at Z=0
+      m.position.set(0, 0, 0);
     });
-  } else if (partType === 'backplate') {
-    const geom = buildBackplateGeometry(config);
-    exportSingleMeshStl(geom, `${prefix}_backplate_print_ready.stl`, (m) => {
-      m.geometry.computeBoundingBox();
-      if (m.geometry.boundingBox) {
-        m.position.z = -m.geometry.boundingBox.min.z;
-      }
-    });
-  } else if (partType === 'stand') {
-    const geom = buildDeskStandGeometry(config);
-    exportSingleMeshStl(geom, `${prefix}_desk_stand_print_ready.stl`, (m) => {
-      m.geometry.computeBoundingBox();
-      if (m.geometry.boundingBox) {
-        m.position.z = -m.geometry.boundingBox.min.z;
-      }
+  } else if (partType === 'back_cover') {
+    // Part 2: Hexagonal Honeycomb Ventilation Back Cover
+    const geom = buildHexBackCoverGeometry(config);
+    exportSingleMeshStl(geom, `${prefix}_part2_hex_back_cover_print_ready.stl`, (m) => {
+      // Flat at Z=0
+      m.position.set(0, 0, 0);
     });
   } else if (partType === 'assembly') {
     const group = new THREE.Group();
     const mat = new THREE.MeshBasicMaterial();
 
-    const housingMesh = new THREE.Mesh(buildMainHousingGeometry(config), mat);
-    const bpMesh = new THREE.Mesh(buildBackplateGeometry(config), mat);
-    const standMesh = new THREE.Mesh(buildDeskStandGeometry(config), mat);
+    const bodyMesh = new THREE.Mesh(buildMainClockBodyGeometry(config), mat);
+    const coverMesh = new THREE.Mesh(buildHexBackCoverGeometry(config), mat);
 
-    const cavX = config.phoneLength + 2 * config.fitTolerance;
+    const effectiveThickness = config.phoneThickness + config.caseAllowance;
+    const cavZ = effectiveThickness + 0.5;
+    const chassisDepth = Math.max(config.baseDepth, cavZ + config.frontBezelThick + config.backCoverThick + 2.0);
+
+    bodyMesh.position.set(0, 0, 0);
+    coverMesh.position.set(0, 0, chassisDepth - config.backCoverThick);
+
+    const standGroup = new THREE.Group();
+    standGroup.add(bodyMesh);
+    standGroup.add(coverMesh);
+
+    // Stand upright on desk foot
     const cavY = config.phoneWidth + 2 * config.fitTolerance;
     const outerY = cavY + 2 * config.wallThickness;
-    const effectiveThickness = config.phoneThickness + config.caseAllowance;
-    const outerZ = config.frontBezelThick + effectiveThickness + 0.5 + 3.6;
-    const tiltRad = (config.tiltAngle * Math.PI) / 180;
+    standGroup.position.set(0, outerY / 2, 0);
+    standGroup.rotation.x = Math.PI / 2;
 
-    // Position in table assembly mode
-    standMesh.position.set(0, 0, 0);
-
-    const housingGroup = new THREE.Group();
-    housingGroup.position.set(0, -config.standDepth / 2 + 18.0, 10.0);
-    housingGroup.rotation.x = -tiltRad;
-
-    const innerGroup = new THREE.Group();
-    innerGroup.position.set(0, 0, outerY / 2 + 2.0);
-    innerGroup.rotation.x = Math.PI / 2;
-    innerGroup.rotation.z = Math.PI;
-
-    housingMesh.position.set(0, 0, 0);
-    bpMesh.position.set(0, 0, outerZ / 2 - 3.6 / 2);
-
-    innerGroup.add(housingMesh);
-    innerGroup.add(bpMesh);
-    housingGroup.add(innerGroup);
-
-    group.add(standMesh);
-    group.add(housingGroup);
+    group.add(standGroup);
     group.updateMatrixWorld(true);
 
     const stlData = exporter.parse(group, { binary: true });
     const blob = new Blob([stlData], { type: 'application/octet-stream' });
-    triggerBlobDownload(blob, `${prefix}_clock_enclosure_assembly.stl`);
+    triggerBlobDownload(blob, `${prefix}_2part_clock_assembly.stl`);
   }
 }

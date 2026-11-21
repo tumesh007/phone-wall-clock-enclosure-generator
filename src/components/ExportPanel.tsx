@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { EnclosureConfig } from '../types/enclosure';
 import { exportPartStl, downloadScadFile } from '../cad/stlExporter';
-import { Download, FileCode, Check, Layers, Package, Loader2 } from 'lucide-react';
+import { Download, FileCode, Package, Loader2 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 
 interface ExportPanelProps {
@@ -11,9 +11,8 @@ interface ExportPanelProps {
 export const ExportPanel: React.FC<ExportPanelProps> = ({ config }) => {
   const [downloading, setDownloading] = useState<string | null>(null);
 
-  const handleDownloadStl = async (part: 'housing' | 'backplate' | 'stand' | 'assembly') => {
+  const handleDownloadStl = (part: 'main_body' | 'back_cover' | 'assembly') => {
     setDownloading(part);
-    // Yield to render loader
     setTimeout(() => {
       try {
         exportPartStl(part, config);
@@ -40,70 +39,55 @@ export const ExportPanel: React.FC<ExportPanelProps> = ({ config }) => {
   };
 
   return (
-    <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-2">
-        <button
-          onClick={() => handleDownloadStl('housing')}
-          disabled={!!downloading}
-          className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white font-medium text-xs transition-all shadow-lg shadow-sky-600/20 active:scale-[0.98]"
-        >
-          {downloading === 'housing' ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Download className="w-4 h-4" />
-          )}
-          <span>Housing STL</span>
-        </button>
+    <div className="space-y-2.5">
+      <button
+        onClick={() => handleDownloadStl('main_body')}
+        disabled={!!downloading}
+        className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-sky-600 hover:bg-sky-500 disabled:opacity-50 text-white font-medium text-xs transition-all shadow-lg shadow-sky-600/20 active:scale-[0.98]"
+      >
+        {downloading === 'main_body' ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : (
+          <Download className="w-4 h-4" />
+        )}
+        <span>Download Part 1: Front &amp; Body (.STL)</span>
+      </button>
 
-        <button
-          onClick={() => handleDownloadStl('backplate')}
-          disabled={!!downloading}
-          className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 hover:text-white font-medium text-xs transition-all border border-slate-700/80 active:scale-[0.98]"
-        >
-          {downloading === 'backplate' ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Download className="w-4 h-4" />
-          )}
-          <span>Backplate STL</span>
-        </button>
-      </div>
+      <button
+        onClick={() => handleDownloadStl('back_cover')}
+        disabled={!!downloading}
+        className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 hover:text-white font-medium text-xs transition-all border border-slate-700/80 active:scale-[0.98]"
+      >
+        {downloading === 'back_cover' ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : (
+          <Download className="w-4 h-4" />
+        )}
+        <span>Download Part 2: Hex Back Cover (.STL)</span>
+      </button>
 
-      <div className="grid grid-cols-2 gap-2">
-        <button
-          onClick={() => handleDownloadStl('stand')}
-          disabled={!!downloading}
-          className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 hover:text-white font-medium text-xs transition-all border border-slate-700/80 active:scale-[0.98]"
-        >
-          {downloading === 'stand' ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Download className="w-4 h-4" />
-          )}
-          <span>Desk Stand STL</span>
-        </button>
-
+      <div className="grid grid-cols-2 gap-2 pt-1">
         <button
           onClick={() => handleDownloadStl('assembly')}
           disabled={!!downloading}
-          className="flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 disabled:opacity-50 text-slate-200 hover:text-white font-medium text-xs transition-all border border-slate-700/80 active:scale-[0.98]"
+          className="flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 disabled:opacity-50 text-slate-300 hover:text-white font-medium text-[11px] transition-all border border-slate-700/60"
         >
           {downloading === 'assembly' ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
           ) : (
-            <Package className="w-4 h-4 text-sky-400" />
+            <Package className="w-3.5 h-3.5 text-sky-400" />
           )}
           <span>Assembly STL</span>
         </button>
-      </div>
 
-      <button
-        onClick={handleDownloadScad}
-        className="w-full flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-500 hover:to-amber-600 text-white font-medium text-xs transition-all shadow-lg shadow-amber-600/20 active:scale-[0.98]"
-      >
-        <FileCode className="w-4 h-4" />
-        <span>Download OpenSCAD (.scad)</span>
-      </button>
+        <button
+          onClick={handleDownloadScad}
+          className="flex items-center justify-center gap-1.5 px-2.5 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-medium text-[11px] transition-all shadow-md shadow-amber-600/20 active:scale-[0.98]"
+        >
+          <FileCode className="w-3.5 h-3.5" />
+          <span>OpenSCAD (.scad)</span>
+        </button>
+      </div>
     </div>
   );
 };

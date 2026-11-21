@@ -3,10 +3,9 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { EnclosureConfig, BedFitStatus } from '../types/enclosure';
 import {
-  buildMainHousingGeometry,
-  buildBackplateGeometry,
-  buildDeskStandGeometry,
-  buildPhoneMockupGeometry
+  buildMainClockBodyGeometry,
+  buildHexBackCoverGeometry,
+  buildGhostPhoneGeometry
 } from '../cad/geometryBuilder';
 import { ViewGizmo, CameraViewPreset } from './ViewGizmo';
 import { FitBadge } from './FitBadge';
@@ -40,7 +39,7 @@ export const Viewer3D: React.FC<Viewer3DProps> = ({ config, fit, onToggleRotate 
 
     // 2. Camera
     const camera = new THREE.PerspectiveCamera(45, width / height, 1, 2000);
-    camera.position.set(160, 180, 240);
+    camera.position.set(160, 140, 240);
     cameraRef.current = camera;
 
     // 3. Renderer
@@ -58,14 +57,14 @@ export const Viewer3D: React.FC<Viewer3DProps> = ({ config, fit, onToggleRotate 
     controls.dampingFactor = 0.05;
     controls.maxDistance = 1000;
     controls.minDistance = 20;
-    controls.target.set(0, 0, 0);
+    controls.target.set(0, 40, 0);
     controlsRef.current = controls;
 
     // 5. Lights
-    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x1e293b, 0.9);
+    const hemiLight = new THREE.HemisphereLight(0xffffff, 0x1e293b, 0.95);
     scene.add(hemiLight);
 
-    const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.2);
+    const dirLight1 = new THREE.DirectionalLight(0xffffff, 1.3);
     dirLight1.position.set(150, 300, 200);
     dirLight1.castShadow = true;
     dirLight1.shadow.mapSize.width = 1024;
@@ -120,7 +119,6 @@ export const Viewer3D: React.FC<Viewer3DProps> = ({ config, fit, onToggleRotate 
     if (!bedGroupRef.current) return;
     const bedGroup = bedGroupRef.current;
 
-    // Clear previous bed
     while (bedGroup.children.length > 0) {
       const child = bedGroup.children[0] as THREE.Mesh;
       if (child.geometry) child.geometry.dispose();
@@ -129,7 +127,7 @@ export const Viewer3D: React.FC<Viewer3DProps> = ({ config, fit, onToggleRotate 
 
     if (!config.showA1MiniBed) return;
 
-    // Bed Plate: 180 x 180 mm
+    // 180 x 180 mm plate
     const bedPlateGeom = new THREE.BoxGeometry(180, 180, 2);
     const bedPlateMat = new THREE.MeshStandardMaterial({
       color: 0x1e293b,
@@ -160,12 +158,11 @@ export const Viewer3D: React.FC<Viewer3DProps> = ({ config, fit, onToggleRotate 
     bedGroup.add(wireframe);
   }, [config.showA1MiniBed]);
 
-  // Update 3D Geometry when config changes
+  // Update 3D Geometry
   useEffect(() => {
     if (!modelGroupRef.current) return;
     const modelGroup = modelGroupRef.current;
 
-    // Clear previous meshes
     while (modelGroup.children.length > 0) {
       const obj = modelGroup.children[0];
       obj.traverse((child) => {
@@ -177,139 +174,93 @@ export const Viewer3D: React.FC<Viewer3DProps> = ({ config, fit, onToggleRotate 
     }
 
     try {
-      const cavX = config.phoneLength + 2 * config.fitTolerance;
+      const effectiveThickness = config.phoneThickness + config.caseAllowance;
+      const cavZ = effectiveThickness + 0.5;
+      const chassisDepth = Math.max(config.baseDepth, cavZ + config.frontBezelThick + config.backCoverThick + 2.0);
+
       const cavY = config.phoneWidth + 2 * config.fitTolerance;
       const outerY = cavY + 2 * config.wallThickness;
-      const effectiveThickness = config.phoneThickness + config.caseAllowance;
-      const outerZ = config.frontBezelThick + effectiveThickness + 0.5 + 3.6;
 
       // Materials
-      const housingMat = new THREE.MeshStandardMaterial({
-        color: 0xf1f5f9,
+      const bodyMat = new THREE.MeshStandardMaterial({
+        color: 0xf8fafc,
         roughness: 0.45,
-        metalness: 0.1
+        metalness: 0.08
       });
-      const backplateMat = new THREE.MeshStandardMaterial({
-        color: 0x94a3b8,
+      const coverMat = new THREE.MeshStandardMaterial({
+        color: 0x475569,
         roughness: 0.55,
-        metalness: 0.2
+        metalness: 0.15
       });
-      const standMat = new THREE.MeshStandardMaterial({
-        color: 0x334155,
-        roughness: 0.6,
-        metalness: 0.3
-      });
-      const phoneMat = new THREE.MeshStandardMaterial({
+      const ghostMat = new THREE.MeshStandardMaterial({
         color: 0x020617,
-        roughness: 0.15,
-        metalness: 0.8
+        roughness: 0.2,
+        metalness: 0.8,
+        transparent: true,
+        opacity: 0.75
       });
 
-      if (config.viewMode === 'assembly_table') {
-        const tiltRad = (config.tiltAngle * Math.PI) / 180;
+      if (config.viewMode === 'assembly') {
         const explode = config.explodedOffset;
+        const clockGroup = new THREE.Group();
 
-        // 1. Desk Stand sitting flat
-        const standGeom = buildDeskStandGeometry(config);
-        const standMesh = new THREE.Mesh(standGeom, standMat);
-        standMesh.castShadow = true;
-        standMesh.receiveShadow = true;
-        modelGroup.add(standMesh);
+        // Main Clock Body standing upright (bottom table foot at Y=0)
+        const bodyGeom = buildMainClockBodyGeometry(config);
+        const bodyMesh = new THREE.Mesh(bodyGeom, bodyMat);
+        bodyMesh.castShadow = true;
+        bodyMesh.receiveShadow = true;
+        clockGroup.add(bodyMesh);
 
-        // 2. Housing Assembly
-        const cradleGroup = new THREE.Group();
-        cradleGroup.position.set(0, -config.standDepth / 2 + 18.0, 10.0 + explode * 0.4);
-        cradleGroup.rotation.x = -tiltRad;
-
-        const tiltSubGroup = new THREE.Group();
-        tiltSubGroup.position.set(0, 0, outerY / 2 + 2.0);
-        tiltSubGroup.rotation.x = Math.PI / 2;
-        tiltSubGroup.rotation.z = Math.PI;
-
-        // Main Housing
-        const housingGeom = buildMainHousingGeometry(config);
-        const housingMesh = new THREE.Mesh(housingGeom, housingMat);
-        housingMesh.castShadow = true;
-        tiltSubGroup.add(housingMesh);
-
-        // Mockup Phone
-        if (config.showPhone) {
-          const phoneGeom = buildPhoneMockupGeometry(config);
-          const phoneMesh = new THREE.Mesh(phoneGeom, phoneMat);
-          phoneMesh.position.set(0, 0, -outerZ / 2 + config.frontBezelThick + (effectiveThickness + 0.5) / 2);
-          tiltSubGroup.add(phoneMesh);
+        // Ghost Phone inside cavity
+        if (config.showGhostPhone) {
+          const phoneGeom = buildGhostPhoneGeometry(config);
+          const phoneMesh = new THREE.Mesh(phoneGeom, ghostMat);
+          phoneMesh.position.set(0, 0, config.frontBezelThick + cavZ / 2);
+          clockGroup.add(phoneMesh);
         }
 
-        // Backplate with exploded offset
-        const bpGeom = buildBackplateGeometry(config);
-        const bpMesh = new THREE.Mesh(bpGeom, backplateMat);
-        bpMesh.position.set(0, 0, outerZ / 2 - 3.6 / 2 + explode);
-        bpMesh.castShadow = true;
-        tiltSubGroup.add(bpMesh);
+        // Hex Back Cover seated in rear shelf (moves backwards with exploded slider)
+        const coverGeom = buildHexBackCoverGeometry(config);
+        const coverMesh = new THREE.Mesh(coverGeom, coverMat);
+        coverMesh.position.set(0, 0, chassisDepth - config.backCoverThick + explode);
+        coverMesh.castShadow = true;
+        clockGroup.add(coverMesh);
 
-        cradleGroup.add(tiltSubGroup);
-        modelGroup.add(cradleGroup);
+        // Position standing upright on table surface
+        const standGroup = new THREE.Group();
+        standGroup.position.set(0, outerY / 2, 0);
+        standGroup.rotation.x = Math.PI / 2;
+        standGroup.add(clockGroup);
 
-      } else if (config.viewMode === 'assembly_wall') {
-        const explode = config.explodedOffset;
-        const wallGroup = new THREE.Group();
-        wallGroup.position.set(0, outerY / 2 + 10.0, outerZ / 2);
-        wallGroup.rotation.x = Math.PI / 2;
-        wallGroup.rotation.z = Math.PI;
+        modelGroup.add(standGroup);
 
-        const housingGeom = buildMainHousingGeometry(config);
-        const housingMesh = new THREE.Mesh(housingGeom, housingMat);
-        housingMesh.castShadow = true;
-        wallGroup.add(housingMesh);
+      } else if (config.viewMode === 'main_body') {
+        const bodyGeom = buildMainClockBodyGeometry(config);
+        const bodyMesh = new THREE.Mesh(bodyGeom, bodyMat);
+        bodyMesh.position.set(0, 0, 0);
+        bodyMesh.castShadow = true;
+        modelGroup.add(bodyMesh);
 
-        if (config.showPhone) {
-          const phoneGeom = buildPhoneMockupGeometry(config);
-          const phoneMesh = new THREE.Mesh(phoneGeom, phoneMat);
-          phoneMesh.position.set(0, 0, -outerZ / 2 + config.frontBezelThick + (effectiveThickness + 0.5) / 2);
-          wallGroup.add(phoneMesh);
-        }
+      } else if (config.viewMode === 'back_cover') {
+        const coverGeom = buildHexBackCoverGeometry(config);
+        const coverMesh = new THREE.Mesh(coverGeom, coverMat);
+        coverMesh.position.set(0, 0, 0);
+        coverMesh.castShadow = true;
+        modelGroup.add(coverMesh);
 
-        const bpGeom = buildBackplateGeometry(config);
-        const bpMesh = new THREE.Mesh(bpGeom, backplateMat);
-        bpMesh.position.set(0, 0, outerZ / 2 - 3.6 / 2 + explode);
-        bpMesh.castShadow = true;
-        wallGroup.add(bpMesh);
-
-        modelGroup.add(wallGroup);
-
-      } else if (config.viewMode === 'housing') {
-        const housingGeom = buildMainHousingGeometry(config);
-        const housingMesh = new THREE.Mesh(housingGeom, housingMat);
-        housingMesh.position.set(0, 0, outerZ / 2);
-        housingMesh.castShadow = true;
-        modelGroup.add(housingMesh);
-
-      } else if (config.viewMode === 'backplate') {
-        const bpGeom = buildBackplateGeometry(config);
-        const bpMesh = new THREE.Mesh(bpGeom, backplateMat);
-        bpMesh.position.set(0, 0, 3.6 / 2);
-        bpMesh.castShadow = true;
-        modelGroup.add(bpMesh);
-
-      } else if (config.viewMode === 'stand') {
-        const standGeom = buildDeskStandGeometry(config);
-        const standMesh = new THREE.Mesh(standGeom, standMat);
-        standMesh.castShadow = true;
-        modelGroup.add(standMesh);
-
-      } else if (config.viewMode === 'plate_layout') {
-        // Main Housing flat face-down on build plate
-        const housingGeom = buildMainHousingGeometry(config);
-        const housingMesh = new THREE.Mesh(housingGeom, housingMat);
-        housingMesh.rotation.x = Math.PI / 2;
-        housingMesh.position.set(0, outerZ / 2, 0);
+      } else if (config.viewMode === 'bed_layout') {
+        // Part 1: Main Clock Body printed face-down on build plate (Z=0 on front bezel)
+        const bodyGeom = buildMainClockBodyGeometry(config);
+        const bodyMesh = new THREE.Mesh(bodyGeom, bodyMat);
+        bodyMesh.rotation.x = -Math.PI / 2;
+        bodyMesh.position.set(0, 0, 0);
 
         if (config.rotate45OnBed) {
-          housingMesh.rotation.y = Math.PI / 4;
+          bodyMesh.rotation.z = Math.PI / 4;
         }
 
-        housingMesh.castShadow = true;
-        modelGroup.add(housingMesh);
+        bodyMesh.castShadow = true;
+        modelGroup.add(bodyMesh);
       }
     } catch (e) {
       console.error('Failed to update 3D geometry:', e);
@@ -324,17 +275,17 @@ export const Viewer3D: React.FC<Viewer3DProps> = ({ config, fit, onToggleRotate 
 
     const dist = 320;
     if (preset === 'front') {
-      camera.position.set(0, 30, dist);
+      camera.position.set(0, 45, dist);
     } else if (preset === 'top') {
       camera.position.set(0, dist, 0.01);
     } else if (preset === 'side') {
-      camera.position.set(dist, 30, 0);
+      camera.position.set(dist, 45, 0);
     } else if (preset === 'rear') {
-      camera.position.set(0, 30, -dist);
+      camera.position.set(0, 45, -dist);
     } else if (preset === 'iso') {
-      camera.position.set(160, 180, 240);
+      camera.position.set(160, 140, 240);
     }
-    controls.target.set(0, 20, 0);
+    controls.target.set(0, 40, 0);
     controls.update();
   };
 

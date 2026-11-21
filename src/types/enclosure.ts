@@ -16,9 +16,8 @@ export interface PhonePreset {
   notes: string;
 }
 
-export type MountStyle = 'dual' | 'wall' | 'desk';
 export type UsbSide = 'right' | 'left' | 'bottom';
-export type ViewMode = 'assembly_table' | 'assembly_wall' | 'housing' | 'backplate' | 'stand' | 'plate_layout';
+export type ViewMode = 'assembly' | 'main_body' | 'back_cover' | 'bed_layout';
 
 export interface EnclosureConfig {
   presetId: string;
@@ -37,22 +36,23 @@ export interface EnclosureConfig {
   screenOffsetX: number;
   screenOffsetY: number;
 
-  // Enclosure & Mounting
+  // Enclosure & Chunky Base Chassis
   wallThickness: number;
   frontBezelThick: number;
-  bezelLip: number;
+  baseDepth: number; // Bottom foot depth (>= 20-25mm for rock-solid tabletop stability)
+  topDepth: number;  // Top chassis depth (>= 15-18mm)
+  backCoverThick: number; // 3.0mm
+  screwHoleDiameter: number; // 3.2mm for M3 or self-tapping
+
+  // Ports
   usbSide: UsbSide;
   usbWidth: number;
   usbHeight: number;
-  mountStyle: MountStyle;
-  tiltAngle: number;
-  standWidth: number;
-  standDepth: number;
 
   // View / Assembly state
   viewMode: ViewMode;
-  explodedOffset: number; // 0 to 40 mm
-  showPhone: boolean;
+  explodedOffset: number; // 0 to 50 mm
+  showGhostPhone: boolean;
   showA1MiniBed: boolean;
   rotate45OnBed: boolean;
 }
@@ -62,7 +62,8 @@ export interface BedFitStatus {
   fitsDiagonal: boolean;
   canFitBed: boolean;
   recommendedAngle: 0 | 45;
-  housingDims: { x: number; y: number; z: number };
+  bodyDims: { x: number; y: number; z: number };
+  coverDims: { x: number; y: number; z: number };
   bedDims: { x: number; y: number; z: number };
   marginStraight: { x: number; y: number };
   diagonalSpan: number;

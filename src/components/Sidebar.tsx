@@ -1,18 +1,17 @@
 import React, { useState } from 'react';
-import { EnclosureConfig, PhonePreset, UsbSide, ViewMode } from '../types/enclosure';
+import { EnclosureConfig, PhonePreset, UsbSide } from '../types/enclosure';
 import presetsData from '../data/presets.json';
 import { ExportPanel } from './ExportPanel';
 import {
   Smartphone,
   Maximize2,
-  Sliders,
   Eye,
   Layers,
   ChevronDown,
-  Info,
   Shield,
   Cable,
-  Monitor
+  Monitor,
+  Box
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -21,15 +20,7 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({ config, onChange }) => {
-  const [search, setSearch] = useState('');
   const presets: PhonePreset[] = presetsData as PhonePreset[];
-
-  const filteredPresets = presets.filter(
-    (p) =>
-      p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.brand.toLowerCase().includes(search.toLowerCase())
-  );
-
   const currentPreset = presets.find((p) => p.id === config.presetId);
 
   const handleSelectPreset = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -62,17 +53,17 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, onChange }) => {
           </div>
           <div>
             <h1 className="text-sm font-semibold text-white tracking-wide">
-              Phone Clock Enclosure
+              Phone Clock Studio
             </h1>
-            <p className="text-[11px] text-slate-400">Parametric 3D Generator</p>
+            <p className="text-[11px] text-slate-400">2-Part Standalone Clock</p>
           </div>
         </div>
         <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-slate-800 text-sky-400 border border-slate-700">
-          A1 Mini Ready
+          2-Part Architecture
         </span>
       </div>
 
-      {/* Scrollable Content */}
+      {/* Scrollable Controls */}
       <div className="flex-1 overflow-y-auto p-4 space-y-6 custom-scrollbar text-xs">
         {/* Preset Selector */}
         <section className="space-y-2">
@@ -99,7 +90,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, onChange }) => {
             <div className="p-2.5 rounded-lg bg-slate-950/60 border border-slate-800/80 text-[11px] space-y-1 text-slate-400">
               <div className="text-slate-300 font-medium">{currentPreset.notes}</div>
               <div className="flex justify-between">
-                <span>Display Area:</span>
+                <span>Display Window:</span>
                 <span className="font-mono text-slate-300">
                   {currentPreset.screenLength} × {currentPreset.screenWidth} mm
                 </span>
@@ -112,68 +103,48 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, onChange }) => {
         <section className="space-y-2">
           <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
             <Eye className="w-3.5 h-3.5 text-sky-400" />
-            <span>Display & View Mode</span>
+            <span>Display &amp; View Mode</span>
           </label>
-          <div className="grid grid-cols-3 gap-1.5 bg-slate-950 p-1 rounded-lg border border-slate-800">
+          <div className="grid grid-cols-2 gap-1.5 bg-slate-950 p-1.5 rounded-lg border border-slate-800">
             <button
-              onClick={() => onChange({ viewMode: 'assembly_table' })}
+              onClick={() => onChange({ viewMode: 'assembly' })}
               className={`py-1.5 px-2 rounded text-[11px] font-medium transition-all ${
-                config.viewMode === 'assembly_table'
+                config.viewMode === 'assembly'
                   ? 'bg-sky-600 text-white shadow'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              Table Clock
+              Assembled Clock
             </button>
             <button
-              onClick={() => onChange({ viewMode: 'assembly_wall' })}
+              onClick={() => onChange({ viewMode: 'bed_layout' })}
               className={`py-1.5 px-2 rounded text-[11px] font-medium transition-all ${
-                config.viewMode === 'assembly_wall'
+                config.viewMode === 'bed_layout'
                   ? 'bg-sky-600 text-white shadow'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              Wall Mount
+              Bed Layout (2-Part)
             </button>
             <button
-              onClick={() => onChange({ viewMode: 'housing' })}
+              onClick={() => onChange({ viewMode: 'main_body' })}
               className={`py-1.5 px-2 rounded text-[11px] font-medium transition-all ${
-                config.viewMode === 'housing'
+                config.viewMode === 'main_body'
                   ? 'bg-sky-600 text-white shadow'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              Housing
+              Part 1: Front &amp; Body
             </button>
             <button
-              onClick={() => onChange({ viewMode: 'backplate' })}
+              onClick={() => onChange({ viewMode: 'back_cover' })}
               className={`py-1.5 px-2 rounded text-[11px] font-medium transition-all ${
-                config.viewMode === 'backplate'
+                config.viewMode === 'back_cover'
                   ? 'bg-sky-600 text-white shadow'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
-              Backplate
-            </button>
-            <button
-              onClick={() => onChange({ viewMode: 'stand' })}
-              className={`py-1.5 px-2 rounded text-[11px] font-medium transition-all ${
-                config.viewMode === 'stand'
-                  ? 'bg-sky-600 text-white shadow'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Desk Stand
-            </button>
-            <button
-              onClick={() => onChange({ viewMode: 'plate_layout' })}
-              className={`py-1.5 px-2 rounded text-[11px] font-medium transition-all ${
-                config.viewMode === 'plate_layout'
-                  ? 'bg-sky-600 text-white shadow'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Bed Layout
+              Part 2: Hex Cover
             </button>
           </div>
 
@@ -186,7 +157,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, onChange }) => {
             <input
               type="range"
               min="0"
-              max="40"
+              max="50"
               step="1"
               value={config.explodedOffset}
               onChange={(e) => onChange({ explodedOffset: parseFloat(e.target.value) })}
@@ -199,11 +170,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, onChange }) => {
             <label className="flex items-center gap-2 cursor-pointer text-slate-300">
               <input
                 type="checkbox"
-                checked={config.showPhone}
-                onChange={(e) => onChange({ showPhone: e.target.checked })}
+                checked={config.showGhostPhone}
+                onChange={(e) => onChange({ showGhostPhone: e.target.checked })}
                 className="rounded border-slate-700 bg-slate-800 text-sky-500 focus:ring-0"
               />
-              <span>Mockup Phone</span>
+              <span>Ghost Phone</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer text-slate-300">
               <input
@@ -217,11 +188,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, onChange }) => {
           </div>
         </section>
 
-        {/* Phone Exterior Dimensions */}
+        {/* Phone Body & Internal Pocket */}
         <section className="space-y-3">
           <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
             <Maximize2 className="w-3.5 h-3.5 text-sky-400" />
-            <span>Phone Body & Cavity (mm)</span>
+            <span>Phone Body Dimensions (mm)</span>
           </label>
 
           <div className="grid grid-cols-2 gap-2">
@@ -299,7 +270,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, onChange }) => {
 
           {/* Fit Tolerance */}
           <div className="flex justify-between items-center text-[11px]">
-            <span className="text-slate-400">Fit Tolerance</span>
+            <span className="text-slate-400">Pocket Fit Tolerance</span>
             <div className="flex items-center gap-1.5">
               <input
                 type="number"
@@ -315,11 +286,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, onChange }) => {
           </div>
         </section>
 
-        {/* Screen Window Dimensions */}
+        {/* Screen Viewing Window */}
         <section className="space-y-3">
           <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
             <Monitor className="w-3.5 h-3.5 text-sky-400" />
-            <span>Screen Viewing Window (mm)</span>
+            <span>Active Screen Cutout (mm)</span>
           </label>
 
           <div className="grid grid-cols-2 gap-2">
@@ -366,35 +337,35 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, onChange }) => {
           </div>
         </section>
 
-        {/* Ports & Mounting Options */}
+        {/* Chunky Table Base & Frame */}
         <section className="space-y-3">
           <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
-            <Cable className="w-3.5 h-3.5 text-sky-400" />
-            <span>Cable Port & Stand</span>
+            <Box className="w-3.5 h-3.5 text-sky-400" />
+            <span>Clock Chassis &amp; Table Base</span>
           </label>
 
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <span className="text-[11px] text-slate-400">USB Port Side</span>
-              <select
-                value={config.usbSide}
-                onChange={(e) => onChange({ usbSide: e.target.value as UsbSide })}
-                className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-xs text-slate-200"
-              >
-                <option value="right">Right Edge</option>
-                <option value="left">Left Edge</option>
-                <option value="bottom">Bottom Edge</option>
-              </select>
-            </div>
-            <div>
-              <span className="text-[11px] text-slate-400">Stand Tilt (deg)</span>
+              <span className="text-[11px] text-slate-400">Table Foot Depth</span>
               <input
                 type="number"
-                min="10"
-                max="25"
                 step="1"
-                value={config.tiltAngle}
-                onChange={(e) => onChange({ tiltAngle: parseFloat(e.target.value) || 15 })}
+                min="18"
+                max="35"
+                value={config.baseDepth}
+                onChange={(e) => onChange({ baseDepth: parseFloat(e.target.value) || 24 })}
+                className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 font-mono text-xs text-slate-100"
+              />
+            </div>
+            <div>
+              <span className="text-[11px] text-slate-400">Wall Thickness</span>
+              <input
+                type="number"
+                step="0.2"
+                min="2.0"
+                max="4.0"
+                value={config.wallThickness}
+                onChange={(e) => onChange({ wallThickness: parseFloat(e.target.value) || 2.8 })}
                 className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 font-mono text-xs text-slate-100"
               />
             </div>
@@ -402,26 +373,51 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, onChange }) => {
 
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <span className="text-[11px] text-slate-400">Wall Thick (PETG)</span>
+              <span className="text-[11px] text-slate-400">Front Bezel Thick</span>
               <input
                 type="number"
                 step="0.2"
-                min="1.6"
+                min="2.0"
                 max="4.0"
-                value={config.wallThickness}
-                onChange={(e) => onChange({ wallThickness: parseFloat(e.target.value) || 2.4 })}
+                value={config.frontBezelThick}
+                onChange={(e) => onChange({ frontBezelThick: parseFloat(e.target.value) || 2.8 })}
                 className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 font-mono text-xs text-slate-100"
               />
             </div>
             <div>
-              <span className="text-[11px] text-slate-400">Front Bezel</span>
+              <span className="text-[11px] text-slate-400">M3 Screw Boss</span>
               <input
                 type="number"
-                step="0.2"
-                min="1.6"
+                step="0.1"
+                min="2.5"
                 max="4.0"
-                value={config.frontBezelThick}
-                onChange={(e) => onChange({ frontBezelThick: parseFloat(e.target.value) || 2.4 })}
+                value={config.screwHoleDiameter}
+                onChange={(e) => onChange({ screwHoleDiameter: parseFloat(e.target.value) || 3.2 })}
+                className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 font-mono text-xs text-slate-100"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <span className="text-[11px] text-slate-400">Charging Port Side</span>
+              <select
+                value={config.usbSide}
+                onChange={(e) => onChange({ usbSide: e.target.value as UsbSide })}
+                className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1.5 text-xs text-slate-200"
+              >
+                <option value="right">Right Edge (Rear-Drop)</option>
+                <option value="left">Left Edge (Rear-Drop)</option>
+                <option value="bottom">Bottom Edge (Rear-Drop)</option>
+              </select>
+            </div>
+            <div>
+              <span className="text-[11px] text-slate-400">Cable Cutout (mm)</span>
+              <input
+                type="number"
+                step="1"
+                value={config.usbWidth}
+                onChange={(e) => onChange({ usbWidth: parseFloat(e.target.value) || 18 })}
                 className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 font-mono text-xs text-slate-100"
               />
             </div>
@@ -432,7 +428,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ config, onChange }) => {
         <section className="space-y-2 pt-2 border-t border-slate-800">
           <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
             <Layers className="w-3.5 h-3.5 text-sky-400" />
-            <span>Generate & Download</span>
+            <span>Generate &amp; Download</span>
           </label>
           <ExportPanel config={config} />
         </section>

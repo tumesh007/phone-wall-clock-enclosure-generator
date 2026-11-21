@@ -42,14 +42,16 @@ export function calculateBedFit(config: EnclosureConfig): BedFitStatus {
   const outerY = cavY + 2 * config.wallThickness;
   const effectiveThickness = config.phoneThickness + config.caseAllowance;
   const cavZ = effectiveThickness + 0.5;
-  const backplateThick = 3.6;
-  const outerZ = config.frontBezelThick + cavZ + backplateThick;
+  const chassisDepth = Math.max(config.baseDepth, cavZ + config.frontBezelThick + config.backCoverThick + 2.0);
+
+  const bpX = cavX + 6.0 - 0.4;
+  const bpY = cavY + 6.0 - 0.4;
 
   const bedX = 180.0;
   const bedY = 180.0;
   const bedZ = 180.0;
 
-  const fitsStraight = outerX <= bedX && outerY <= bedY && outerZ <= bedZ;
+  const fitsStraight = outerX <= bedX && outerY <= bedY && chassisDepth <= bedZ;
   const diagonalSpan = (outerX + outerY) * Math.SQRT1_2;
   const fitsDiagonal = diagonalSpan <= bedX;
   const canFitBed = fitsStraight || fitsDiagonal;
@@ -60,10 +62,15 @@ export function calculateBedFit(config: EnclosureConfig): BedFitStatus {
     fitsDiagonal,
     canFitBed,
     recommendedAngle,
-    housingDims: {
+    bodyDims: {
       x: Number(outerX.toFixed(2)),
       y: Number(outerY.toFixed(2)),
-      z: Number(outerZ.toFixed(2))
+      z: Number(chassisDepth.toFixed(2))
+    },
+    coverDims: {
+      x: Number(bpX.toFixed(2)),
+      y: Number(bpY.toFixed(2)),
+      z: Number(config.backCoverThick.toFixed(2))
     },
     bedDims: { x: bedX, y: bedY, z: bedZ },
     marginStraight: {
@@ -76,9 +83,9 @@ export function calculateBedFit(config: EnclosureConfig): BedFitStatus {
 }
 
 // -----------------------------------------------------------------------------
-// MAIN HOUSING CSG BUILDER
+// PART 1: MAIN CLOCK BODY CSG BUILDER (Front Faceplate + Sturdy Body + Base Foot)
 // -----------------------------------------------------------------------------
-export function buildMainHousingGeometry(config: EnclosureConfig): THREE.BufferGeometry {
+export function buildMainClockBodyGeometry(config: EnclosureConfig): THREE.BufferGeometry {
   const effectiveThickness = config.phoneThickness + config.caseAllowance;
   const cavX = config.phoneLength + 2 * config.fitTolerance;
   const cavY = config.phoneWidth + 2 * config.fitTolerance;
@@ -86,144 +93,135 @@ export function buildMainHousingGeometry(config: EnclosureConfig): THREE.BufferG
 
   const outerX = cavX + 2 * config.wallThickness;
   const outerY = cavY + 2 * config.wallThickness;
-  const backplateThick = 3.6;
-  const outerZ = config.frontBezelThick + cavZ + backplateThick;
-  const outerR = Math.max(config.cornerRadius + 2.0, 6.0);
+  const chassisDepth = Math.max(config.baseDepth, cavZ + config.frontBezelThick + config.backCoverThick + 2.0);
+  const outerR = Math.max(config.cornerRadius + 2.0, 8.0);
 
-  // 1. Base outer shell
-  const outerGeom = createRoundedBoxGeometry(outerX, outerY, outerZ, outerR);
-  let mainBrush = new Brush(outerGeom);
-  mainBrush.updateMatrixWorld();
+  // 1. Base solid chassis box (extruding backwards from Z=0 to Z=chassisDepth)
+  const outerGeom = createRoundedBoxGeometry(outerX, outerY, chassisDepth, outerR);
+  let bodyBrush = new Brush(outerGeom);
+  bodyBrush.position.set(0, 0, chassisDepth / 2);
+  bodyBrush.updateMatrixWorld();
 
-  // 1b. Front Stepped Bezel Detail (Add slight step on front face)
-  const stepGeom = createRoundedBoxGeometry(outerX - 1.2, outerY - 1.2, config.frontBezelThick * 0.4, outerR - 0.6);
-  const stepBrush = new Brush(stepGeom);
-  stepBrush.position.set(0, 0, -outerZ / 2 + config.frontBezelThick * 0.2);
-  stepBrush.updateMatrixWorld();
-  mainBrush = evaluator.evaluate(mainBrush, stepBrush, ADDITION);
-
-  // 2. Screen Window Cutout
+  // 2. Active Screen Viewing Window Cutout (through front face at Z=0)
   const winGeom = createRoundedBoxGeometry(
     config.screenLength,
     config.screenWidth,
-    config.frontBezelThick + 8.0,
+    config.frontBezelThick + 4.0,
     config.screenCornerRadius
   );
   const winBrush = new Brush(winGeom);
-  winBrush.position.set(config.screenOffsetX, config.screenOffsetY, -outerZ / 2 + config.frontBezelThick / 2);
+  winBrush.position.set(config.screenOffsetX, config.screenOffsetY, config.frontBezelThick / 2 - 0.5);
   winBrush.updateMatrixWorld();
-  mainBrush = evaluator.evaluate(mainBrush, winBrush, SUBTRACTION);
+  bodyBrush = evaluator.evaluate(bodyBrush, winBrush, SUBTRACTION);
 
-  // 3. Internal Phone Cavity
-  const cavGeom = createRoundedBoxGeometry(cavX, cavY, cavZ + 0.2, config.cornerRadius);
+  // 3. Open-backed Phone Pocket Cavity (starts behind front bezel, opens to rear)
+  const cavDepth = chassisDepth - config.frontBezelThick + 2.0;
+  const cavGeom = createRoundedBoxGeometry(cavX, cavY, cavDepth, config.cornerRadius);
   const cavBrush = new Brush(cavGeom);
-  cavBrush.position.set(0, 0, -outerZ / 2 + config.frontBezelThick + cavZ / 2);
+  cavBrush.position.set(0, 0, config.frontBezelThick + cavDepth / 2);
   cavBrush.updateMatrixWorld();
-  mainBrush = evaluator.evaluate(mainBrush, cavBrush, SUBTRACTION);
+  bodyBrush = evaluator.evaluate(bodyBrush, cavBrush, SUBTRACTION);
 
-  // 4. Backplate Shelf / Recess
-  const shelfGeom = createRoundedBoxGeometry(cavX + 3.6, cavY + 3.6, backplateThick + 0.2, config.cornerRadius + 1.8);
+  // 4. Rear Step / Shelf for Hex Back Cover (3.0mm recessed perimeter)
+  const shelfGeom = createRoundedBoxGeometry(cavX + 6.0, cavY + 6.0, config.backCoverThick + 0.4, config.cornerRadius + 2.0);
   const shelfBrush = new Brush(shelfGeom);
-  shelfBrush.position.set(0, 0, outerZ / 2 - backplateThick / 2);
+  shelfBrush.position.set(0, 0, chassisDepth - config.backCoverThick / 2 + 0.1);
   shelfBrush.updateMatrixWorld();
-  mainBrush = evaluator.evaluate(mainBrush, shelfBrush, SUBTRACTION);
+  bodyBrush = evaluator.evaluate(bodyBrush, shelfBrush, SUBTRACTION);
 
-  // 5. USB Port Cutout
+  // 5. Open-Rear USB-C Cable Channel (open toward the rear edge so plugged cable drops straight in!)
+  const usbSlotDepth = chassisDepth - config.frontBezelThick + 2.0;
   const usbGeom = new THREE.BoxGeometry(
     config.usbSide === 'bottom' ? config.usbWidth : config.wallThickness * 2 + 6.0,
     config.usbSide === 'bottom' ? config.wallThickness * 2 + 6.0 : config.usbWidth,
-    config.usbHeight
+    usbSlotDepth
   );
   const usbBrush = new Brush(usbGeom);
+  const usbCenterZ = config.frontBezelThick + usbSlotDepth / 2;
   if (config.usbSide === 'right') {
-    usbBrush.position.set(outerX / 2, 0, -outerZ / 2 + config.frontBezelThick + cavZ / 2);
+    usbBrush.position.set(outerX / 2, 0, usbCenterZ);
   } else if (config.usbSide === 'left') {
-    usbBrush.position.set(-outerX / 2, 0, -outerZ / 2 + config.frontBezelThick + cavZ / 2);
+    usbBrush.position.set(-outerX / 2, 0, usbCenterZ);
   } else {
-    usbBrush.position.set(0, -outerY / 2, -outerZ / 2 + config.frontBezelThick + cavZ / 2);
+    usbBrush.position.set(0, -outerY / 2, usbCenterZ);
   }
   usbBrush.updateMatrixWorld();
-  mainBrush = evaluator.evaluate(mainBrush, usbBrush, SUBTRACTION);
+  bodyBrush = evaluator.evaluate(bodyBrush, usbBrush, SUBTRACTION);
 
-  // 6. Loudspeaker Perforations (4 holes along lower edge)
-  const holeGeom = new THREE.CylinderGeometry(1.5, 1.5, config.wallThickness * 2 + 4.0, 16);
-  holeGeom.rotateX(Math.PI / 2);
+  // 6. Open-Rear Loudspeaker Slots (along bottom wall, open to the rear)
+  const speakerSlotGeom = new THREE.BoxGeometry(3.2, config.wallThickness * 2 + 4.0, usbSlotDepth);
   for (let i = -3; i >= -6; i--) {
-    const holeBrush = new Brush(holeGeom);
-    holeBrush.position.set(
-      outerX / 2 - 25.0 + i * 4.2,
-      -outerY / 2,
-      -outerZ / 2 + config.frontBezelThick + cavZ / 2
-    );
-    holeBrush.updateMatrixWorld();
-    mainBrush = evaluator.evaluate(mainBrush, holeBrush, SUBTRACTION);
+    const spBrush = new Brush(speakerSlotGeom);
+    spBrush.position.set(outerX / 2 - 25.0 + i * 4.2, -outerY / 2, usbCenterZ);
+    spBrush.updateMatrixWorld();
+    bodyBrush = evaluator.evaluate(bodyBrush, spBrush, SUBTRACTION);
   }
 
-  // 7. Snap-fit Detent Notches
-  const notchGeom = new THREE.BoxGeometry(18.0, 0.9, 1.8);
-  for (const side of [-1, 1]) {
-    const notchBrush = new Brush(notchGeom);
-    notchBrush.position.set(0, side * (cavY / 2 + 1.6), outerZ / 2 - backplateThick / 2);
-    notchBrush.updateMatrixWorld();
-    mainBrush = evaluator.evaluate(mainBrush, notchBrush, SUBTRACTION);
+  // 7. 4 Corner M3 Screw Boss Pilot Holes
+  const bossX = cavX / 2 + 1.8;
+  const bossY = cavY / 2 + 1.8;
+  const holeGeom = new THREE.CylinderGeometry(
+    config.screwHoleDiameter / 2,
+    config.screwHoleDiameter / 2,
+    14.0,
+    16
+  );
+  for (const sx of [-bossX, bossX]) {
+    for (const sy of [-bossY, bossY]) {
+      const holeBrush = new Brush(holeGeom);
+      holeBrush.position.set(sx, sy, chassisDepth - 7.0);
+      holeBrush.updateMatrixWorld();
+      bodyBrush = evaluator.evaluate(bodyBrush, holeBrush, SUBTRACTION);
+    }
   }
 
-  const result = mainBrush.geometry.clone();
+  const result = bodyBrush.geometry.clone();
   result.computeVertexNormals();
   return result;
 }
 
 // -----------------------------------------------------------------------------
-// HONEYCOMB BACKPLATE CSG BUILDER
+// PART 2: SIMPLE HEXAGONAL MESH BACK COVER CSG BUILDER
 // -----------------------------------------------------------------------------
-export function buildBackplateGeometry(config: EnclosureConfig): THREE.BufferGeometry {
+export function buildHexBackCoverGeometry(config: EnclosureConfig): THREE.BufferGeometry {
   const cavX = config.phoneLength + 2 * config.fitTolerance;
   const cavY = config.phoneWidth + 2 * config.fitTolerance;
-  const bpX = cavX + 3.6 - 0.4;
-  const bpY = cavY + 3.6 - 0.4;
-  const bpZ = 3.6;
+  const bpX = cavX + 6.0 - 0.4;
+  const bpY = cavY + 6.0 - 0.4;
+  const bpZ = config.backCoverThick;
 
-  const baseGeom = createRoundedBoxGeometry(bpX, bpY, bpZ, config.cornerRadius + 1.6);
-  let bpBrush = new Brush(baseGeom);
-  bpBrush.updateMatrixWorld();
+  // 1. Flat closing plate
+  const baseGeom = createRoundedBoxGeometry(bpX, bpY, bpZ, config.cornerRadius + 1.8);
+  let coverBrush = new Brush(baseGeom);
+  coverBrush.position.set(0, 0, bpZ / 2);
+  coverBrush.updateMatrixWorld();
 
-  // Snap tabs on top/bottom
-  const tabGeom = new THREE.BoxGeometry(17.0, 0.6, 1.4);
-  for (const side of [-1, 1]) {
-    const tabBrush = new Brush(tabGeom);
-    tabBrush.position.set(0, side * (bpY / 2 + 0.25), 0);
-    tabBrush.updateMatrixWorld();
-    bpBrush = evaluator.evaluate(bpBrush, tabBrush, ADDITION);
-  }
-
-  // Honeycomb ventilation slots
+  // 2. Central Hexagonal Honeycomb Ventilation Cells
   const cellRadius = 4.2;
   const cellWall = 1.6;
   const stepX = (cellRadius * 2 + cellWall) * Math.cos(Math.PI / 6);
   const stepY = (cellRadius * 2 + cellWall) * 0.75;
-  const gridW = bpX - 48.0;
-  const gridH = bpY - 22.0;
+  const gridW = bpX - 54.0;
+  const gridH = bpY - 26.0;
 
-  const hexGeom = new THREE.CylinderGeometry(cellRadius, cellRadius, bpZ + 1.0, 6);
+  const hexGeom = new THREE.CylinderGeometry(cellRadius, cellRadius, bpZ + 1.5, 6);
   hexGeom.rotateX(Math.PI / 2);
 
   for (let hx = -gridW / 2; hx <= gridW / 2; hx += stepX) {
     for (let hy = -gridH / 2; hy <= gridH / 2; hy += stepY * 2) {
-      // Hex cell 1
       const hex1 = new Brush(hexGeom);
-      hex1.position.set(hx, hy, 0);
+      hex1.position.set(hx, hy, bpZ / 2);
       hex1.updateMatrixWorld();
-      bpBrush = evaluator.evaluate(bpBrush, hex1, SUBTRACTION);
+      coverBrush = evaluator.evaluate(coverBrush, hex1, SUBTRACTION);
 
-      // Hex cell 2 (offset)
       const hex2 = new Brush(hexGeom);
-      hex2.position.set(hx + stepX / 2, hy + stepY, 0);
+      hex2.position.set(hx + stepX / 2, hy + stepY, bpZ / 2);
       hex2.updateMatrixWorld();
-      bpBrush = evaluator.evaluate(bpBrush, hex2, SUBTRACTION);
+      coverBrush = evaluator.evaluate(coverBrush, hex2, SUBTRACTION);
     }
   }
 
-  // Dual keyhole wall mounting slots (spaced 80mm)
+  // 3. Dual Keyhole Wall Mounting Slots (spaced 80mm)
   const keyholeLargeGeom = new THREE.CylinderGeometry(4.0, 4.0, bpZ + 1.0, 16);
   keyholeLargeGeom.rotateX(Math.PI / 2);
   const keyholeSmallGeom = new THREE.CylinderGeometry(2.0, 2.0, bpZ + 1.0, 16);
@@ -232,123 +230,69 @@ export function buildBackplateGeometry(config: EnclosureConfig): THREE.BufferGeo
 
   for (const kx of [-40.0, 40.0]) {
     const k1 = new Brush(keyholeLargeGeom);
-    k1.position.set(kx, 0, 0);
+    k1.position.set(kx, 0, bpZ / 2);
     k1.updateMatrixWorld();
-    bpBrush = evaluator.evaluate(bpBrush, k1, SUBTRACTION);
+    coverBrush = evaluator.evaluate(coverBrush, k1, SUBTRACTION);
 
     const k2 = new Brush(keyholeSlotGeom);
-    k2.position.set(kx, 3.5, 0);
+    k2.position.set(kx, 3.5, bpZ / 2);
     k2.updateMatrixWorld();
-    bpBrush = evaluator.evaluate(bpBrush, k2, SUBTRACTION);
+    coverBrush = evaluator.evaluate(coverBrush, k2, SUBTRACTION);
 
     const k3 = new Brush(keyholeSmallGeom);
-    k3.position.set(kx, 7.0, 0);
+    k3.position.set(kx, 7.0, bpZ / 2);
     k3.updateMatrixWorld();
-    bpBrush = evaluator.evaluate(bpBrush, k3, SUBTRACTION);
+    coverBrush = evaluator.evaluate(coverBrush, k3, SUBTRACTION);
   }
 
-  // 3M Command strip recessed pockets
-  const padGeom = createRoundedBoxGeometry(16.0, 52.0, 1.3, 3.0);
+  // 4. Dual 3M Command Strip Recessed Landing Pads
+  const padGeom = createRoundedBoxGeometry(16.0, 50.0, 1.2, 3.0);
   for (const cx of [-bpX / 2 + 10.0, bpX / 2 - 10.0]) {
     const pad = new Brush(padGeom);
-    pad.position.set(cx, 0, bpZ / 2 - 0.6);
+    pad.position.set(cx, 0, bpZ - 0.6);
     pad.updateMatrixWorld();
-    bpBrush = evaluator.evaluate(bpBrush, pad, SUBTRACTION);
+    coverBrush = evaluator.evaluate(coverBrush, pad, SUBTRACTION);
   }
 
-  // Cable pass-through notch on USB side
-  const notchWidth = config.usbWidth + 4.0;
-  const cableNotchGeom = new THREE.BoxGeometry(8.0, notchWidth, bpZ + 1.0);
-  const cableNotch = new Brush(cableNotchGeom);
-  if (config.usbSide === 'right') {
-    cableNotch.position.set(bpX / 2, 0, 0);
-  } else if (config.usbSide === 'left') {
-    cableNotch.position.set(-bpX / 2, 0, 0);
-  } else {
-    cableNotch.position.set(0, -bpY / 2, 0);
-  }
-  cableNotch.updateMatrixWorld();
-  bpBrush = evaluator.evaluate(bpBrush, cableNotch, SUBTRACTION);
+  // 5. 4 Corner Countersunk M3 Screw Pass-Through Holes
+  const bossX = cavX / 2 + 1.8;
+  const bossY = cavY / 2 + 1.8;
+  const screwHoleGeom = new THREE.CylinderGeometry(
+    (config.screwHoleDiameter + 0.4) / 2,
+    (config.screwHoleDiameter + 0.4) / 2,
+    bpZ + 1.0,
+    16
+  );
+  const countersinkGeom = new THREE.CylinderGeometry(
+    (config.screwHoleDiameter + 2.8) / 2,
+    (config.screwHoleDiameter + 0.4) / 2,
+    1.6,
+    16
+  );
 
-  const result = bpBrush.geometry.clone();
-  result.computeVertexNormals();
-  return result;
-}
+  for (const sx of [-bossX, bossX]) {
+    for (const sy of [-bossY, bossY]) {
+      const sh = new Brush(screwHoleGeom);
+      sh.position.set(sx, sy, bpZ / 2);
+      sh.updateMatrixWorld();
+      coverBrush = evaluator.evaluate(coverBrush, sh, SUBTRACTION);
 
-// -----------------------------------------------------------------------------
-// DETACHABLE 15-DEGREE WEDGE DESK STAND CSG BUILDER
-// -----------------------------------------------------------------------------
-export function buildDeskStandGeometry(config: EnclosureConfig): THREE.BufferGeometry {
-  const baseW = config.standWidth;
-  const baseD = config.standDepth;
-  const baseH = 42.0;
-
-  const cavX = config.phoneLength + 2 * config.fitTolerance;
-  const cavY = config.phoneWidth + 2 * config.fitTolerance;
-  const outerX = cavX + 2 * config.wallThickness;
-  const effectiveThickness = config.phoneThickness + config.caseAllowance;
-  const cavZ = effectiveThickness + 0.5;
-  const outerZ = config.frontBezelThick + cavZ + 3.6;
-
-  // 1. Base Stand Solid Wedge Block
-  const baseGeom = createRoundedBoxGeometry(baseW, baseD, baseH, 8.0);
-  let standBrush = new Brush(baseGeom);
-  standBrush.position.set(0, 0, baseH / 2);
-  standBrush.updateMatrixWorld();
-
-  // 2. Cradle slot at tiltAngle
-  const cradleGeom = createRoundedBoxGeometry(outerX + 2.0, outerZ + 2.2, 45.0, 6.0);
-  const cradleBrush = new Brush(cradleGeom);
-  const rad = (config.tiltAngle * Math.PI) / 180;
-  cradleBrush.rotation.x = -rad;
-  cradleBrush.position.set(0, -baseD / 2 + 18.0, baseH - 12.0);
-  cradleBrush.updateMatrixWorld();
-  standBrush = evaluator.evaluate(standBrush, cradleBrush, SUBTRACTION);
-
-  // 3. Rear Cable Pass-through Arch
-  const archGeom = createRoundedBoxGeometry(28.0, 26.0, 24.0, 4.0);
-  const archBrush = new Brush(archGeom);
-  archBrush.position.set(0, baseD / 2 - 12.0, baseH / 2 - 4.0);
-  archBrush.updateMatrixWorld();
-  standBrush = evaluator.evaluate(standBrush, archBrush, SUBTRACTION);
-
-  // 4. Front Speaker Relief Cutouts
-  const speakerGeom = new THREE.CylinderGeometry(6.0, 6.0, 22.0, 16);
-  speakerGeom.rotateZ(Math.PI / 2);
-  for (const sx of [-30.0, 30.0]) {
-    const spBrush = new Brush(speakerGeom);
-    spBrush.position.set(sx, -baseD / 2 + 6.0, baseH - 10.0);
-    spBrush.updateMatrixWorld();
-    standBrush = evaluator.evaluate(standBrush, spBrush, SUBTRACTION);
-  }
-
-  // 5. Anti-slip Rubber Feet Pockets (4 corners, 8.5mm x 1.5mm)
-  const footGeom = new THREE.CylinderGeometry(4.25, 4.25, 2.0, 16);
-  for (const fx of [-baseW / 2 + 16.0, baseW / 2 - 16.0]) {
-    for (const fy of [-baseD / 2 + 12.0, baseD / 2 - 12.0]) {
-      const footBrush = new Brush(footGeom);
-      footBrush.position.set(fx, fy, 0.5);
-      footBrush.updateMatrixWorld();
-      standBrush = evaluator.evaluate(standBrush, footBrush, SUBTRACTION);
+      const cs = new Brush(countersinkGeom);
+      cs.position.set(sx, sy, bpZ - 0.8);
+      cs.updateMatrixWorld();
+      coverBrush = evaluator.evaluate(coverBrush, cs, SUBTRACTION);
     }
   }
 
-  // 6. Internal Weight-saving Hollow Cavity
-  const hollowGeom = createRoundedBoxGeometry(baseW - 38.0, 12.0, baseH, 4.0);
-  const hollowBrush = new Brush(hollowGeom);
-  hollowBrush.position.set(0, baseD / 2 - 10.0, baseH / 2 + 4.0);
-  hollowBrush.updateMatrixWorld();
-  standBrush = evaluator.evaluate(standBrush, hollowBrush, SUBTRACTION);
-
-  const result = standBrush.geometry.clone();
+  const result = coverBrush.geometry.clone();
   result.computeVertexNormals();
   return result;
 }
 
 // -----------------------------------------------------------------------------
-// PHONE MOCKUP GEOMETRY
+// GHOST PHONE MOCKUP GEOMETRY
 // -----------------------------------------------------------------------------
-export function buildPhoneMockupGeometry(config: EnclosureConfig): THREE.BufferGeometry {
+export function buildGhostPhoneGeometry(config: EnclosureConfig): THREE.BufferGeometry {
   const effectiveThickness = config.phoneThickness + config.caseAllowance;
   return createRoundedBoxGeometry(
     config.phoneLength,

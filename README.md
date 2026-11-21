@@ -1,27 +1,29 @@
 # 📱 Parametric Phone Wall & Table Clock Enclosure Generator
 
-An interactive, 100% client-side 3D web application to generate custom-tailored, 3D-printable enclosures for repurposing old and spare smartphones into retro-modern bedside and wall digital clocks.
+An interactive, 100% client-side 3D web application to generate custom-tailored, 3D-printable **2-part standalone clock enclosures** for repurposing smartphones into retro-modern bedside and wall digital clocks.
 
 🔗 **Live Web App**: [https://tumesh007.github.io/phone-wall-clock-enclosure-generator/](https://tumesh007.github.io/phone-wall-clock-enclosure-generator/)
 
 ---
 
-## 🌟 Key Features
+## 🌟 True 2-Part Standalone Clock Housing
 
-- **Real-Time Client-Side 3D CAD Preview**: Uses Three.js and high-performance Constructive Solid Geometry (`three-bvh-csg`) to render the stepped CRT-style front bezel, honeycomb ventilation backplate, and 15° wedge desk stand with pass-through cabling.
-- **Bambu Lab A1 Mini Build-Plate Validator**:
-  - Displays a realistic $180 \times 180\text{ mm}$ build-plate footprint with wireframe build volume bounds.
-  - Live status badge verifies whether your configured phone model fits in a single piece (straight or rotated $45^\circ$ diagonally) or requires two-part printing.
-- **25+ Curated Smartphone Presets**:
-  - Covers popular models from Apple (iPhone 12–16, mini, SE, Pro Max), Samsung (Galaxy S/A/M series, Ultra), Google Pixel (7–9 Pro XL), OnePlus, Nothing, Xiaomi/Redmi, and Realme.
-  - Pre-calibrated active display window dimensions derived from display diagonal and aspect ratio to ensure phone bezels remain hidden while clock digits stay 100% visible.
-- **Instant Client-Side Binary STL Export**:
-  - Download individual print-oriented parts: Main Housing (face-down), Honeycomb Backplate, Desk Stand, or Complete Assembly.
-- **Dynamic Parametric OpenSCAD Export**:
-  - Export clean, parameterized `.scad` source code formatted with your exact customized dimensions and tolerance values.
-- **Dual-Purpose Table Stand + Flush Wall Mount**:
-  - **Table Clock Mode**: Docks into a detachable 15° wedge stand with cable pass-through arch and speaker relief ports.
-  - **Wall Mount Mode**: Backplate features dual keyhole slots spaced $80.0\text{ mm}$ apart for M3.5/#6 screws, plus recessed pockets for damage-free 3M Command picture hanging strips.
+Unlike tight snap-on phone cases, this project generates a chunky, self-standing desk and wall clock frame in **two unified pieces**:
+
+1. **Part 1: Front Faceplate + Body + Table Base Foot (`main_clock_body`)**:
+   - **Prints face-down** flat on the build plate with **zero supports**.
+   - **Front Face**: Thick bezel ($\ge 2.8\text{ mm}$) with an **Active Screen Cutout** that frames only the display, cleanly hiding phone bezels.
+   - **Open-Backed Pocket**: Phones drop straight into the rear cavity without bending or flexing around a tight case.
+   - **Chunky Table Foot**: Flat bottom foot ($24\text{ mm}$ depth) allows the clock to stand upright on any nightstand or desk without tipping.
+   - **Open Rear-Drop Ports**: USB-C cable channel and bottom speaker slots are open toward the rear edge so a plugged-in phone drops straight into place.
+   - **4 Corner M3 Screw Bosses**: Anchors the back cover firmly.
+
+2. **Part 2: Flat Hexagonal Mesh Back Cover (`hex_back_cover`)**:
+   - Single flat closing plate ($3.0\text{ mm}$) that seats flush into the rear perimeter step.
+   - **Hexagonal Honeycomb Grid**: Maximum airflow directly over the battery and CPU for 24/7 continuous clock display.
+   - **Dual Keyhole Wall Mounts**: Spaced $80.0\text{ mm}$ apart for standard M3.5/#6 wall screws.
+   - **Dual 3M Command Strip Recesses**: Flat landing pads for damage-free hanging.
+   - **4 Corner Countersunk Screw Holes**: Fastens into the main clock body.
 
 ---
 
@@ -36,38 +38,22 @@ Every component has been engineered to print **completely support-free**!
 | **Wall Loops / Perimeters** | `4` | Solid $1.6\text{ mm}$ outer walls |
 | **Top / Bottom Shells** | `5` Top, `4` Bottom | Clean surface finish |
 | **Infill** | `15% - 20% Gyroid` | Optimum strength-to-weight ratio |
-| **Supports** | **DISABLED (None)** | All chamfers $\le 45^\circ$ and bridges span cleanly |
+| **Supports** | **DISABLED (None)** | Main body prints face-down; Back cover prints flat |
 
-### Print Orientations:
-1. **Main Housing**: Print **face-down** on a textured PEI plate. This ensures a beautiful matte textured finish across the front bezel.
-2. **Backplate**: Print **flat on build plate**.
-3. **Desk Stand**: Print **flat on its base**.
+---
+
+## 📊 Bambu Lab A1 Mini Compatibility
+
+- Both Part 1 (`main_clock_body`) and Part 2 (`hex_back_cover`) fit well within the **$180 \times 180\text{ mm}$** build volume for standard smartphones (e.g. Realme 1, iPhone 15/16, Galaxy S24, Pixel 8/9).
+- The web app includes a real-time validator checking straight and 45° diagonal fit margins.
 
 ---
 
 ## 🛠️ Adding New Phone Models
 
-To add custom smartphone models, open `src/data/presets.json` and add a new entry:
-
-```json
-{
-  "id": "my-phone-model",
-  "brand": "BrandName",
-  "name": "Model Name",
-  "bodyLength": 160.0,
-  "bodyWidth": 76.0,
-  "bodyThickness": 8.0,
-  "cornerRadius": 10.0,
-  "screenLength": 150.0,
-  "screenWidth": 68.0,
-  "screenCornerRadius": 8.0,
-  "screenOffsetX": 0.0,
-  "screenOffsetY": 0.0,
-  "usbSide": "right",
-  "usbOffset": 0.0,
-  "notes": "Display size, resolution, and connector details"
-}
-```
+To add custom smartphone models, open `src/data/presets.json` and add an entry with:
+- `bodyLength`, `bodyWidth`, `bodyThickness`, `cornerRadius` (for internal cavity)
+- `screenLength`, `screenWidth`, `screenCornerRadius`, `screenOffsetY` (for front window cutout)
 
 ---
 
@@ -92,4 +78,4 @@ npm run build
 
 ## 📄 License
 
-MIT License. Designed with OpenSCAD and Three.js.
+MIT License. Designed with OpenSCAD, Three.js, and React.

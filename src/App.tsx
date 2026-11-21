@@ -19,18 +19,17 @@ const initialConfig: EnclosureConfig = {
   screenOffsetX: 0.0,
   screenOffsetY: 0.0,
   wallThickness: 2.8,
-  frontBezelThick: 2.4,
-  bezelLip: 3.2,
+  frontBezelThick: 2.8,
+  baseDepth: 24.0,
+  topDepth: 18.0,
+  backCoverThick: 3.0,
+  screwHoleDiameter: 3.2,
   usbSide: 'right',
   usbWidth: 18.0,
   usbHeight: 9.0,
-  mountStyle: 'dual',
-  tiltAngle: 15.0,
-  standWidth: 130.0,
-  standDepth: 62.0,
-  viewMode: 'assembly_table',
+  viewMode: 'assembly',
   explodedOffset: 0,
-  showPhone: true,
+  showGhostPhone: true,
   showA1MiniBed: true,
   rotate45OnBed: false
 };
@@ -62,7 +61,7 @@ export const App: React.FC = () => {
           </div>
           <span className="hidden sm:inline text-slate-500">|</span>
           <span className="hidden sm:inline text-slate-400">
-            Client-Side 3D CAD &amp; Mesh Generator
+            2-Part Standalone Clock Frame Generator
           </span>
         </div>
 
@@ -108,7 +107,7 @@ export const App: React.FC = () => {
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <h2 className="text-base font-semibold text-white flex items-center gap-2">
                 <Printer className="w-4 h-4 text-sky-400" />
-                <span>3D Printing &amp; Assembly Guide</span>
+                <span>2-Part Clock Housing Guide</span>
               </h2>
               <button
                 onClick={() => setShowHelp(false)}
@@ -120,35 +119,29 @@ export const App: React.FC = () => {
 
             <div className="space-y-3 text-xs leading-relaxed text-slate-300">
               <div className="p-3 bg-slate-950 rounded-xl border border-slate-800">
-                <h3 className="font-semibold text-sky-400 mb-1">Recommended Print Settings:</h3>
+                <h3 className="font-semibold text-sky-400 mb-1">2-Part Architecture:</h3>
                 <ul className="list-disc list-inside space-y-1 text-slate-400">
-                  <li><strong className="text-slate-200">Material:</strong> PETG (or PLA) for thermal stability with continuous clock operation.</li>
-                  <li><strong className="text-slate-200">Layer Height:</strong> 0.20 mm Standard.</li>
-                  <li><strong className="text-slate-200">Perimeters / Walls:</strong> 4 loops (solid 1.6 mm walls).</li>
-                  <li><strong className="text-slate-200">Infill:</strong> 15% - 20% Gyroid.</li>
-                  <li><strong className="text-slate-200">Supports:</strong> <span className="text-emerald-400 font-semibold">Zero Supports Needed!</span> All parts are designed support-free.</li>
+                  <li><strong className="text-slate-200">Part 1 (Front &amp; Body):</strong> Unified thick front faceplate with active screen viewing cutout, open-backed phone pocket, rear-open USB cable slot, and a chunky stable table base foot (24 mm depth) for standalone tabletop use. Prints face-down flat with zero supports!</li>
+                  <li><strong className="text-slate-200">Part 2 (Hex Back Cover):</strong> Flat closing plate with hexagonal honeycomb ventilation mesh, 4-corner M3 screw attachment, dual keyholes (80 mm spacing), and 3M Command strip recesses.</li>
                 </ul>
               </div>
 
               <div className="p-3 bg-slate-950 rounded-xl border border-slate-800">
-                <h3 className="font-semibold text-amber-400 mb-1">Bambu Lab A1 mini Print Orientations:</h3>
+                <h3 className="font-semibold text-emerald-400 mb-1">Recommended Print Settings:</h3>
                 <ul className="list-disc list-inside space-y-1 text-slate-400">
-                  <li><strong className="text-slate-200">Main Housing:</strong> Print face-down on a textured PEI plate for a clean matte front finish.</li>
-                  <li><strong className="text-slate-200">Backplate:</strong> Print flat on plate.</li>
-                  <li><strong className="text-slate-200">Desk Stand:</strong> Print flat on its base.</li>
+                  <li><strong className="text-slate-200">Material:</strong> PETG (or PLA) for 24/7 charging heat resistance.</li>
+                  <li><strong className="text-slate-200">Layer Height:</strong> 0.20 mm Standard.</li>
+                  <li><strong className="text-slate-200">Walls / Perimeters:</strong> 4 loops (solid 1.6 mm walls).</li>
+                  <li><strong className="text-slate-200">Supports:</strong> <span className="text-emerald-400 font-semibold">Zero Supports Needed!</span> Part 1 prints face-down on a textured PEI plate; Part 2 prints flat.</li>
                 </ul>
               </div>
-
-              <p className="text-slate-400">
-                Wall mounting works with standard M3.5/#6 screws (80 mm spacing) or two medium 3M Command picture hanging strips into the recessed side pockets.
-              </p>
             </div>
 
             <button
               onClick={() => setShowHelp(false)}
               className="w-full py-2.5 rounded-lg bg-sky-600 hover:bg-sky-500 text-white font-medium text-xs transition-colors"
             >
-              Got it, let's make some clocks!
+              Got it, let's print!
             </button>
           </div>
         </div>

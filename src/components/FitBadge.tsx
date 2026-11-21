@@ -26,7 +26,7 @@ export const FitBadge: React.FC<FitBadgeProps> = ({ fit, rotate45, onToggleRotat
           ) : (
             <div className="flex items-center gap-1.5 text-rose-400 font-semibold">
               <XCircle className="w-4 h-4 text-rose-400" />
-              <span>Exceeds 180mm Bed (Split Required)</span>
+              <span>Exceeds 180mm Bed</span>
             </div>
           )}
         </div>
@@ -48,10 +48,10 @@ export const FitBadge: React.FC<FitBadgeProps> = ({ fit, rotate45, onToggleRotat
 
       <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-slate-400 text-[11px] border-t border-slate-800/80 pt-2">
         <div>
-          Outer Size: <span className="text-slate-200 font-mono">{fit.housingDims.x} × {fit.housingDims.y} mm</span>
+          Clock Body: <span className="text-slate-200 font-mono">{fit.bodyDims.x} × {fit.bodyDims.y} mm</span>
         </div>
         <div>
-          Height (Z): <span className="text-slate-200 font-mono">{fit.housingDims.z} mm</span>
+          Base Foot Depth: <span className="text-slate-200 font-mono">{fit.bodyDims.z} mm</span>
         </div>
         <div>
           Bed Clearance X: <span className={`font-mono ${fit.marginStraight.x >= 0 ? 'text-emerald-400' : 'text-rose-400'}`}>
