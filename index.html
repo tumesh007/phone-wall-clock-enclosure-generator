@@ -194,7 +194,7 @@
     </aside>
 
     <!-- Right 3D Viewport -->
-    <main class="flex-1 relative bg-slate-950 flex flex-col">
+    <main class="flex-1 relative bg-slate-950 flex flex-col min-h-[350px] overflow-hidden">
       <!-- Viewport Mode Overlay -->
       <div class="absolute top-3 left-3 z-10 flex flex-wrap items-center gap-2 bg-slate-900/90 backdrop-blur border border-slate-700/80 p-1.5 rounded-lg">
         <button id="viewDesk" class="px-3 py-1 rounded text-xs font-semibold bg-sky-600 text-white cursor-pointer">
@@ -216,13 +216,14 @@
         <div id="modeNote" class="text-[11px] text-emerald-300">Echo Show 5 Wedge: Prints face-down with zero supports; stands at 18° tilt on desk.</div>
       </div>
 
-      <div id="canvasContainer" class="w-full h-full"></div>
+      <div id="canvasContainer" class="absolute inset-0 w-full h-full overflow-hidden"></div>
     </main>
   </div>
 
   <script>
     const DEFAULT_PRESETS = [{"group": "Realme", "name": "Realme 1 (CPH1859 / CPH1861)", "bodyL": 156.5, "bodyW": 75.2, "bodyT": 7.8, "bodyR": 8.5, "screenL": 137.0, "screenW": 68.5, "screenR": 2.0, "offsetX": 0.0, "offsetY": 1.2}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy S25", "bodyL": 146.9, "bodyW": 70.5, "bodyT": 7.2, "bodyR": 9.5, "screenL": 141.5, "screenW": 65.5, "screenR": 7.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy M34 5G", "bodyL": 161.7, "bodyW": 77.2, "bodyT": 8.8, "bodyR": 10.0, "screenL": 149.0, "screenW": 68.8, "screenR": 6.0, "offsetX": 0.0, "offsetY": 1.5}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy S24 Ultra", "bodyL": 162.3, "bodyW": 79.0, "bodyT": 8.6, "bodyR": 2.0, "screenL": 157.0, "screenW": 73.5, "screenR": 1.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy S23 / S24", "bodyL": 147.0, "bodyW": 70.6, "bodyT": 7.6, "bodyR": 9.5, "screenL": 141.2, "screenW": 65.4, "screenR": 7.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy A55 5G", "bodyL": 161.1, "bodyW": 77.4, "bodyT": 8.2, "bodyR": 10.5, "screenL": 151.5, "screenW": 69.8, "screenR": 7.5, "offsetX": 0.0, "offsetY": 0.5}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy A15 / A25", "bodyL": 160.1, "bodyW": 76.8, "bodyT": 8.4, "bodyR": 10.0, "screenL": 149.5, "screenW": 69.0, "screenR": 7.0, "offsetX": 0.0, "offsetY": 1.2}, {"group": "Apple iPhone", "name": "iPhone 16 / 15", "bodyL": 147.6, "bodyW": 71.6, "bodyT": 7.8, "bodyR": 11.5, "screenL": 141.4, "screenW": 65.4, "screenR": 9.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Apple iPhone", "name": "iPhone 16 Pro / 15 Pro", "bodyL": 149.6, "bodyW": 71.5, "bodyT": 8.25, "bodyR": 11.5, "screenL": 144.8, "screenW": 66.8, "screenR": 9.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Apple iPhone", "name": "iPhone 16 Pro Max / 15 Pro Max", "bodyL": 163.0, "bodyW": 77.6, "bodyT": 8.25, "bodyR": 12.0, "screenL": 158.0, "screenW": 72.8, "screenR": 10.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Apple iPhone", "name": "iPhone 14 / 13", "bodyL": 146.7, "bodyW": 71.5, "bodyT": 7.8, "bodyR": 11.5, "screenL": 140.2, "screenW": 64.8, "screenR": 9.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Apple iPhone", "name": "iPhone 13 mini / 12 mini", "bodyL": 131.5, "bodyW": 64.2, "bodyT": 7.65, "bodyR": 10.5, "screenL": 125.0, "screenW": 57.8, "screenR": 8.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Apple iPhone", "name": "iPhone SE (2020 / 2022)", "bodyL": 138.4, "bodyW": 67.3, "bodyT": 7.3, "bodyR": 10.5, "screenL": 104.0, "screenW": 58.5, "screenR": 1.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Google Pixel", "name": "Google Pixel 9 / 9 Pro", "bodyL": 152.8, "bodyW": 72.0, "bodyT": 8.5, "bodyR": 11.5, "screenL": 146.8, "screenW": 66.2, "screenR": 9.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Google Pixel", "name": "Google Pixel 8a", "bodyL": 152.1, "bodyW": 72.7, "bodyT": 8.9, "bodyR": 12.0, "screenL": 141.0, "screenW": 63.5, "screenR": 9.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Google Pixel", "name": "Google Pixel 7 / 8", "bodyL": 150.5, "bodyW": 70.8, "bodyT": 8.9, "bodyR": 11.0, "screenL": 142.8, "screenW": 64.2, "screenR": 8.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "OnePlus / Nothing / Xiaomi", "name": "OnePlus 12 / 13", "bodyL": 164.3, "bodyW": 75.8, "bodyT": 9.15, "bodyR": 11.0, "screenL": 157.8, "screenW": 70.6, "screenR": 8.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "OnePlus / Nothing / Xiaomi", "name": "OnePlus Nord CE 4", "bodyL": 162.5, "bodyW": 75.3, "bodyT": 8.4, "bodyR": 10.5, "screenL": 154.5, "screenW": 69.5, "screenR": 8.0, "offsetX": 0.0, "offsetY": 0.3}, {"group": "OnePlus / Nothing / Xiaomi", "name": "Nothing Phone (2a)", "bodyL": 161.7, "bodyW": 76.3, "bodyT": 8.6, "bodyR": 11.5, "screenL": 154.8, "screenW": 69.8, "screenR": 9.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "OnePlus / Nothing / Xiaomi", "name": "Redmi Note 13 Pro 5G", "bodyL": 161.2, "bodyW": 74.2, "bodyT": 8.0, "bodyR": 9.5, "screenL": 153.8, "screenW": 68.8, "screenR": 7.5, "offsetX": 0.0, "offsetY": 0.2}, {"group": "OnePlus / Nothing / Xiaomi", "name": "Redmi Note 10 / 11", "bodyL": 160.5, "bodyW": 74.5, "bodyT": 8.3, "bodyR": 9.5, "screenL": 148.5, "screenW": 67.0, "screenR": 6.5, "offsetX": 0.0, "offsetY": 1.0}, {"group": "Legacy Clock Donors", "name": "Redmi Note 7 / Note 8", "bodyL": 159.2, "bodyW": 75.2, "bodyT": 8.1, "bodyR": 9.5, "screenL": 145.5, "screenW": 67.2, "screenR": 5.5, "offsetX": 0.0, "offsetY": 1.5}, {"group": "Legacy Clock Donors", "name": "Samsung Galaxy M21 / M31", "bodyL": 159.0, "bodyW": 75.1, "bodyT": 8.9, "bodyR": 10.0, "screenL": 146.5, "screenW": 67.6, "screenR": 6.0, "offsetX": 0.0, "offsetY": 1.4}, {"group": "Legacy Clock Donors", "name": "Moto G5S Plus / G6", "bodyL": 153.5, "bodyW": 76.2, "bodyT": 8.0, "bodyR": 10.5, "screenL": 122.0, "screenW": 68.5, "screenR": 1.5, "offsetX": 0.0, "offsetY": 0.0}];
     let ALL_PRESETS = [...DEFAULT_PRESETS];
+    let enclosureStyle = 'wall_box';
 
     fetch('./presets.json').then(r => r.ok ? r.json() : null).then(data => {
       if (Array.isArray(data) && data.length) {
@@ -276,18 +277,34 @@
     presetSelect.addEventListener('change', e => applyPreset(Number(e.target.value)));
 
     // Enclosure Form Factor Toggle ('wall_box' vs 'echoshow')
-    let enclosureStyle = 'wall_box';
+
     const styleWallBtn = document.getElementById('styleWall');
     const styleEchoBtn = document.getElementById('styleEcho');
     const styleDesc = document.getElementById('styleDesc');
     const echoControls = document.getElementById('echoControls');
 
+
+    function updateButtonLabels() {
+      if (enclosureStyle === 'echoshow') {
+        document.getElementById('btnStl1').textContent = 'Download Part 1 (v2 Wedge .STL)';
+        document.getElementById('btnStl2').textContent = 'Download Part 2 (v2 Cover .STL)';
+        document.getElementById('btnScad').textContent = 'Download v2 (.SCAD)';
+      } else {
+        document.getElementById('btnStl1').textContent = 'Download Part 1 (v1 Box .STL)';
+        document.getElementById('btnStl2').textContent = 'Download Part 2 (v1 Cover .STL)';
+        document.getElementById('btnScad').textContent = 'Download v1 (.SCAD)';
+      }
+    }
     styleWallBtn.addEventListener('click', () => {
       enclosureStyle = 'wall_box';
       styleWallBtn.className = 'py-1.5 px-2 rounded text-xs font-semibold bg-sky-600 text-white cursor-pointer transition';
       styleEchoBtn.className = 'py-1.5 px-2 rounded text-xs font-semibold text-slate-300 hover:bg-slate-800 cursor-pointer transition';
       styleDesc.textContent = 'v1: Slim flush profile, weighted bottom foot, dual rear keyhole slots, and 3M Command strip pads.';
       echoControls.className = 'grid grid-cols-2 gap-2 pt-1 opacity-40 pointer-events-none transition-opacity';
+      document.getElementById('btnStl1').textContent = 'Download Part 1 (v1 Box .STL)';
+      document.getElementById('btnStl2').textContent = 'Download Part 2 (v1 Cover .STL)';
+      document.getElementById('btnScad').textContent = 'Download v1 (.SCAD)';
+      updateButtonLabels();
       rebuildScene();
     });
 
@@ -297,34 +314,200 @@
       styleWallBtn.className = 'py-1.5 px-2 rounded text-xs font-semibold text-slate-300 hover:bg-slate-800 cursor-pointer transition';
       styleDesc.textContent = 'v2: 18° angled desk stand, tapered acoustic rear housing, and deep anti-tip base.';
       echoControls.className = 'grid grid-cols-2 gap-2 pt-1 opacity-100 pointer-events-auto transition-opacity';
+      document.getElementById('btnStl1').textContent = 'Download Part 1 (v2 Wedge .STL)';
+      document.getElementById('btnStl2').textContent = 'Download Part 2 (v2 Cover .STL)';
+      updateButtonLabels();
       rebuildScene();
     });
 
-    // Three.js Setup
+    // Three.js & Fallback Viewport Setup
     const container = document.getElementById('canvasContainer');
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x090d16);
 
-    const camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.5, 2000);
-    camera.position.set(145, -185, 135);
-    camera.up.set(0, 0, 1);
+    let camera = null;
+    let renderer = null;
+    let controls = null;
+    let webglAvailable = false;
+    let fallbackCanvas = null;
+    let fallbackCtx = null;
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true });
-    renderer.setSize(container.clientWidth, container.clientHeight);
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    container.appendChild(renderer.domElement);
+    function getContainerDims() {
+      const w = container.clientWidth || (window.innerWidth > 1024 ? window.innerWidth - 384 : window.innerWidth);
+      const h = container.clientHeight || Math.max(350, window.innerHeight - 60);
+      return { w: Math.max(200, w), h: Math.max(200, h) };
+    }
 
-    const controls = new THREE.OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.target.set(0, 0, 35);
+    const initialDims = getContainerDims();
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.65));
-    const dir1 = new THREE.DirectionalLight(0xffffff, 0.85);
-    dir1.position.set(130, -160, 220);
-    scene.add(dir1);
-    const dir2 = new THREE.DirectionalLight(0x38bdf8, 0.4);
-    dir2.position.set(-140, 140, 100);
-    scene.add(dir2);
+    try {
+      camera = new THREE.PerspectiveCamera(40, initialDims.w / initialDims.h, 0.5, 2000);
+      camera.position.set(145, -185, 135);
+      camera.up.set(0, 0, 1);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'default' });
+      renderer.setSize(initialDims.w, initialDims.h);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+      container.innerHTML = '';
+      container.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.target.set(0, 0, 35);
+
+      scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+      const dir1 = new THREE.DirectionalLight(0xffffff, 0.85);
+      dir1.position.set(130, -160, 220);
+      scene.add(dir1);
+      const dir2 = new THREE.DirectionalLight(0x38bdf8, 0.4);
+      dir2.position.set(-140, 140, 100);
+      scene.add(dir2);
+
+      webglAvailable = true;
+    } catch (err) {
+      console.warn('WebGL context creation failed; 2D canvas preview mode active:', err);
+      webglAvailable = false;
+      container.innerHTML = '';
+      fallbackCanvas = document.createElement('canvas');
+      fallbackCanvas.style.width = '100%';
+      fallbackCanvas.style.height = '100%';
+      fallbackCanvas.style.display = 'block';
+      container.appendChild(fallbackCanvas);
+      fallbackCtx = fallbackCanvas.getContext('2d');
+    }
+
+    function draw2DPreview(p) {
+      if (!fallbackCanvas || !fallbackCtx) return;
+      const dims = getContainerDims();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      if (fallbackCanvas.width !== dims.w * dpr || fallbackCanvas.height !== dims.h * dpr) {
+        fallbackCanvas.width = dims.w * dpr;
+        fallbackCanvas.height = dims.h * dpr;
+      }
+      const ctx = fallbackCtx;
+      ctx.save();
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, dims.w, dims.h);
+
+      ctx.fillStyle = '#090d16';
+      ctx.fillRect(0, 0, dims.w, dims.h);
+
+      const cx = dims.w / 2;
+      const cy = dims.h / 2;
+      const scale = Math.min((dims.w - 80) / 200, (dims.h - 80) / 200);
+
+      const bedPx = 180 * scale;
+      const bx = cx - bedPx / 2;
+      const by = cy - bedPx / 2;
+
+      ctx.fillStyle = '#1e293b';
+      ctx.fillRect(bx, by, bedPx, bedPx);
+
+      ctx.strokeStyle = '#334155';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 180; i += 20) {
+        const gx = bx + i * scale;
+        const gy = by + i * scale;
+        ctx.beginPath(); ctx.moveTo(gx, by); ctx.lineTo(gx, by + bedPx); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(bx, gy); ctx.lineTo(bx + bedPx, gy); ctx.stroke();
+      }
+
+      ctx.strokeStyle = '#0284c7';
+      ctx.lineWidth = 2;
+      ctx.strokeRect(bx, by, bedPx, bedPx);
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = '11px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText('Bambu Lab A1 mini Build Plate (180 × 180 mm)', cx, by - 8);
+
+      function drawRoundR(rx, ry, rw, rh, r, fill, stroke, strokeC, fillC) {
+        ctx.beginPath();
+        const rad = Math.min(r, rw / 2, rh / 2);
+        ctx.moveTo(rx + rad, ry);
+        ctx.arcTo(rx + rw, ry, rx + rw, ry + rh, rad);
+        ctx.arcTo(rx + rw, ry + rh, rx, ry + rh, rad);
+        ctx.arcTo(rx, ry + rh, rx, ry, rad);
+        ctx.arcTo(rx, ry, rx + rw, ry, rad);
+        ctx.closePath();
+        if (fill) { ctx.fillStyle = fillC; ctx.fill(); }
+        if (stroke) { ctx.strokeStyle = strokeC; ctx.lineWidth = 1.5; ctx.stroke(); }
+      }
+
+      if (viewMode === 'desk') {
+        const ox = p.outerX * scale;
+        const oy = p.outerY * scale;
+        const x0 = cx - ox / 2;
+        const y0 = cy - oy / 2;
+
+        drawRoundR(x0, y0, ox, oy, p.outerR * scale, true, true, '#38bdf8', '#1e293b');
+
+        const px = p.pocketX * scale;
+        const py = p.pocketY * scale;
+        ctx.save();
+        ctx.setLineDash([4, 4]);
+        drawRoundR(cx - px / 2, cy - py / 2, px, py, p.pocketR * scale, false, true, '#94a3b8');
+        ctx.restore();
+
+        const sx = p.screenL * scale;
+        const sy = p.screenW * scale;
+        const scx = cx + p.offsetX * scale;
+        const scy = cy + p.offsetY * scale;
+        drawRoundR(scx - sx / 2, scy - sy / 2, sx, sy, p.screenR * scale, true, true, '#f59e0b', '#020617');
+
+        ctx.fillStyle = '#94a3b8';
+        const bRad = 3.2 * scale;
+        [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([signX, signY]) => {
+          const bX = cx + signX * (p.coverX / 2 - 5.5) * scale;
+          const bY = cy + signY * (p.pocketY / 2 - 3.8) * scale;
+          ctx.beginPath();
+          ctx.arc(bX, bY, bRad, 0, Math.PI * 2);
+          ctx.fill();
+        });
+
+        ctx.fillStyle = '#f97316';
+        if (p.cableSide === 'right') {
+          ctx.fillRect(x0 + ox - 4, cy - (p.cableW * scale) / 2, 4, p.cableW * scale);
+        } else if (p.cableSide === 'left') {
+          ctx.fillRect(x0, cy - (p.cableW * scale) / 2, 4, p.cableW * scale);
+        } else {
+          ctx.fillRect(cx - (p.cableW * scale) / 2, y0 + oy - 4, p.cableW * scale, 4);
+        }
+
+        ctx.fillStyle = '#f8fafc';
+        ctx.font = '11px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText('Part 1: ' + p.outerX.toFixed(1) + ' × ' + p.outerY.toFixed(1) + ' mm', cx, y0 - 10);
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillText('Screen Aperture: ' + p.screenL.toFixed(1) + ' × ' + p.screenW.toFixed(1) + ' mm', cx, scy + 4);
+
+      } else {
+        const ox = p.outerX * scale;
+        const oy = p.outerY * scale;
+        const p1y = cy + oy / 2 + 5 * scale;
+        drawRoundR(cx - ox / 2, p1y - oy, ox, oy, p.outerR * scale, true, true, '#38bdf8', '#334155');
+
+        const cxw = p.coverX * scale;
+        const cyw = p.coverY * scale;
+        const p2y = cy - 5 * scale;
+        drawRoundR(cx - cxw / 2, p2y - cyw, cxw, cyw, p.coverR * scale, true, true, '#818cf8', '#1e1b4b');
+
+        ctx.fillStyle = '#a5b4fc';
+        ctx.font = '10px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('⬡ ⬡ Part 2 Hex Back Cover ⬡ ⬡', cx, p2y - cyw / 2);
+
+        ctx.fillStyle = '#38bdf8';
+        ctx.fillText('Part 1 Face-Down on Bed', cx, p1y - oy / 2);
+      }
+
+      ctx.fillStyle = '#38bdf8';
+      ctx.font = '10px sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillText('Interactive Viewport Active • Direct STL Binary Export Fully Enabled', 12, dims.h - 12);
+
+      ctx.restore();
+    }
 
     // 180 x 180 mm Bambu Lab A1 mini Build Plate Overlay
     const bedGroup = new THREE.Group();
@@ -357,16 +540,16 @@
       viewMode = 'desk';
       document.getElementById('viewDesk').className = 'px-3 py-1 rounded text-xs font-semibold bg-sky-600 text-white cursor-pointer';
       document.getElementById('viewBed').className = 'px-3 py-1 rounded text-xs font-semibold text-slate-300 hover:bg-slate-800 cursor-pointer';
-      camera.position.set(145, -185, 135);
-      controls.target.set(0, 0, 35);
+      if (camera) camera.position.set(145, -185, 135);
+      if (controls) controls.target.set(0, 0, 35);
       rebuildScene();
     });
     document.getElementById('viewBed').addEventListener('click', () => {
       viewMode = 'bed';
       document.getElementById('viewBed').className = 'px-3 py-1 rounded text-xs font-semibold bg-sky-600 text-white cursor-pointer';
       document.getElementById('viewDesk').className = 'px-3 py-1 rounded text-xs font-semibold text-slate-300 hover:bg-slate-800 cursor-pointer';
-      camera.position.set(0, -175, 220);
-      controls.target.set(0, 0, 10);
+      if (camera) camera.position.set(0, -175, 220);
+      if (controls) controls.target.set(0, 0, 10);
       rebuildScene();
     });
 
@@ -681,7 +864,11 @@
         assemblyRoot.add(part2Group);
       }
 
-      scene.add(assemblyRoot);
+      if (webglAvailable) {
+        scene.add(assemblyRoot);
+      } else {
+        draw2DPreview(p);
+      }
 
       // Readouts & Bambu A1 mini (180x180 mm) Check
       const zText = p.enclosureStyle === 'echoshow'
@@ -998,17 +1185,27 @@ else {
     });
 
     window.addEventListener('resize', () => {
-      camera.aspect = container.clientWidth / container.clientHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(container.clientWidth, container.clientHeight);
+      const dims = getContainerDims();
+      if (webglAvailable && camera && renderer) {
+        camera.aspect = dims.w / dims.h;
+        camera.updateProjectionMatrix();
+        renderer.setSize(dims.w, dims.h);
+      } else if (!webglAvailable) {
+        draw2DPreview(getParams());
+      }
     });
 
+    updateButtonLabels();
+    applyPreset(0);
+    presetSelect.value = 0;
     rebuildScene();
 
     function animate() {
       requestAnimationFrame(animate);
-      controls.update();
-      renderer.render(scene, camera);
+      if (webglAvailable && renderer && camera) {
+        if (controls) controls.update();
+        renderer.render(scene, camera);
+      }
     }
     animate();
   </script>
