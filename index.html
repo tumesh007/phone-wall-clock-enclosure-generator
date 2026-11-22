@@ -1,14 +1,1016 @@
-<!doctype html>
-<html lang="en" class="dark">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230ea5e9' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' cy='12' r='10'/><polyline points='12 6 12 12 16 14'/></svg>" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Parametric Phone Wall & Table Clock Enclosure Generator</title>
-    <meta name="description" content="Generate 3D-printable dual-purpose wall and table clock enclosures for any smartphone. Real-time 3D preview, Bambu Lab A1 mini validator, STL and OpenSCAD export." />
-  </head>
-  <body class="bg-slate-950 text-slate-100 antialiased overflow-hidden select-none">
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Parametric 3D Phone Wall & Echo Show 5 Clock Enclosure Studio</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <style>
+    body { background: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    input[type="number"], select {
+      background: #1e293b; border: 1px solid #334155; color: #f8fafc;
+      border-radius: 0.375rem; padding: 0.35rem 0.5rem; font-size: 0.82rem; width: 100%;
+    }
+    input[type="number"]:focus, select:focus { outline: none; border-color: #38bdf8; }
+  </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+  <!-- Top Bar -->
+  <header class="bg-slate-900 border-b border-slate-800 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3 shrink-0">
+    <div class="flex items-center gap-2.5">
+      <div class="w-8 h-8 rounded-lg bg-sky-500/20 border border-sky-400/40 flex items-center justify-center text-sky-400 font-bold">3D</div>
+      <div>
+        <h1 class="text-sm font-bold tracking-tight text-white">Parametric Phone Wall & Echo Show 5 Clock Studio</h1>
+        <p class="text-[11px] text-slate-400">Zero-Support 2-Part Architecture • v1 Wall/Table Box & v2 Echo Show 5 Wedge • Face-Down Bezel • Hex Mesh Back</p>
+      </div>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-2">
+      <div id="bedBadge" class="px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
+        Bambu A1 mini (180×180 mm): Checking...
+      </div>
+      <button id="btnStl1" class="px-3 py-1.5 rounded-md bg-sky-600 hover:bg-sky-500 text-white text-xs font-semibold transition cursor-pointer">
+        Download Part 1 (.STL)
+      </button>
+      <button id="btnStl2" class="px-3 py-1.5 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold transition cursor-pointer">
+        Download Part 2 (.STL)
+      </button>
+      <button id="btnScad" class="px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-600 text-slate-100 text-xs font-semibold transition cursor-pointer">
+        Download Custom (.SCAD)
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Workspace -->
+  <div class="flex-1 flex flex-col lg:flex-row overflow-hidden">
+    
+    <!-- Left Parametric Controls -->
+    <aside class="w-full lg:w-96 bg-slate-900/95 border-r border-slate-800 overflow-y-auto p-4 space-y-4 shrink-0">
+
+      <!-- Enclosure Style Selector -->
+      <div class="bg-gradient-to-br from-sky-950/70 to-slate-800/70 border border-sky-500/40 rounded-lg p-3 space-y-2.5">
+        <label class="block text-xs font-semibold uppercase tracking-wider text-sky-300">0. Enclosure Form Factor</label>
+        <div class="grid grid-cols-2 gap-1.5 bg-slate-900/90 p-1 rounded-md border border-slate-700">
+          <button id="styleWall" class="py-1.5 px-2 rounded text-xs font-semibold bg-sky-600 text-white cursor-pointer transition">
+            v1: Wall & Table Box
+          </button>
+          <button id="styleEcho" class="py-1.5 px-2 rounded text-xs font-semibold text-slate-300 hover:bg-slate-800 cursor-pointer transition">
+            v2: Echo Show 5 Wedge
+          </button>
+        </div>
+        <p id="styleDesc" class="text-[11px] text-slate-400 leading-tight">
+          v1: Slim flush profile, weighted bottom foot, dual rear keyhole slots, and 3M Command strip pads.
+        </p>
+        <div id="echoControls" class="grid grid-cols-2 gap-2 pt-1 opacity-40 pointer-events-none transition-opacity">
+          <div>
+            <label class="text-[11px] text-slate-300">Screen Tilt Angle (°)</label>
+            <input id="tiltAngle" type="number" step="1" min="8" max="30" value="18" />
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-300">Top Depth (mm)</label>
+            <input id="topDepth" type="number" step="1" min="15" max="35" value="18" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Preset Picker -->
+      <div class="bg-slate-800/60 border border-slate-700/70 rounded-lg p-3 space-y-2">
+        <label class="block text-xs font-semibold uppercase tracking-wider text-sky-400">1. Smartphone Preset (presets.json)</label>
+        <input id="presetSearch" type="text" placeholder="Filter phones (e.g. Realme 1, S25, iPhone)..." class="w-full bg-slate-900 border border-slate-700 rounded px-2.5 py-1.5 text-xs text-white" />
+        <select id="presetSelect" class="mt-1"></select>
+      </div>
+
+      <!-- Interior Pocket -->
+      <div class="bg-slate-800/60 border border-slate-700/70 rounded-lg p-3 space-y-2.5">
+        <div class="text-xs font-semibold uppercase tracking-wider text-sky-400">2. Interior Pocket (Phone Body, mm)</div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[11px] text-slate-400">Body Length (X)</label>
+            <input id="bodyL" type="number" step="0.1" value="156.5" />
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400">Body Width (Y)</label>
+            <input id="bodyW" type="number" step="0.1" value="75.2" />
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400">Thickness (Z)</label>
+            <input id="bodyT" type="number" step="0.1" value="7.8" />
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400">Corner Radius</label>
+            <input id="bodyR" type="number" step="0.5" value="8.5" />
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400">Case Allowance</label>
+            <select id="casePreset">
+              <option value="0">Bare (+0.0 mm)</option>
+              <option value="1.8">Slim Case (+1.8 mm)</option>
+              <option value="3.5">Rugged (+3.5 mm)</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400">Fit Tolerance</label>
+            <input id="fitTol" type="number" step="0.05" value="0.4" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Front Window -->
+      <div class="bg-slate-800/60 border border-slate-700/70 rounded-lg p-3 space-y-2.5">
+        <div class="text-xs font-semibold uppercase tracking-wider text-sky-400">3. Front Window (Active Screen, mm)</div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[11px] text-slate-400">Active Length (X)</label>
+            <input id="screenL" type="number" step="0.1" value="137.0" />
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400">Active Width (Y)</label>
+            <input id="screenW" type="number" step="0.1" value="68.5" />
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400">Screen Corner R</label>
+            <input id="screenR" type="number" step="0.5" value="2.0" />
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400">Screen Offset X</label>
+            <input id="offsetX" type="number" step="0.1" value="0.0" />
+          </div>
+          <div class="col-span-2">
+            <label class="text-[11px] text-slate-400">Screen Offset Y (+Up / -Down)</label>
+            <input id="offsetY" type="number" step="0.1" value="1.2" />
+          </div>
+        </div>
+      </div>
+
+      <!-- Housing & Ports -->
+      <div class="bg-slate-800/60 border border-slate-700/70 rounded-lg p-3 space-y-2.5">
+        <div class="text-xs font-semibold uppercase tracking-wider text-sky-400">4. Housing, Base Depth & Hex Mesh</div>
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="text-[11px] text-slate-400">Front Bezel (mm)</label>
+            <input id="bezelThick" type="number" step="0.2" min="2.4" value="2.6" />
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400">Wall Thick (mm)</label>
+            <input id="wallThick" type="number" step="0.2" value="2.8" />
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400">Min Base Depth (mm)</label>
+            <input id="baseDepth" type="number" step="1" min="20" value="22.0" />
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400">Frame Margin (mm)</label>
+            <input id="frameMargin" type="number" step="0.5" value="9.0" />
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400">Cable Port Side</label>
+            <select id="cableSide">
+              <option value="right" selected>Right (Landscape Bottom)</option>
+              <option value="left">Left</option>
+              <option value="bottom">Bottom</option>
+            </select>
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400">Cable Slot W (mm)</label>
+            <input id="cableW" type="number" step="0.5" value="15.0" />
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400">Cable Slot H (mm)</label>
+            <input id="cableH" type="number" step="0.5" value="9.5" />
+          </div>
+          <div>
+            <label class="text-[11px] text-slate-400">Hex Cell Size (mm)</label>
+            <input id="hexSize" type="number" step="0.5" min="5" max="16" value="9.0" />
+          </div>
+        </div>
+      </div>
+
+    </aside>
+
+    <!-- Right 3D Viewport -->
+    <main class="flex-1 relative bg-slate-950 flex flex-col">
+      <!-- Viewport Mode Overlay -->
+      <div class="absolute top-3 left-3 z-10 flex flex-wrap items-center gap-2 bg-slate-900/90 backdrop-blur border border-slate-700/80 p-1.5 rounded-lg">
+        <button id="viewDesk" class="px-3 py-1 rounded text-xs font-semibold bg-sky-600 text-white cursor-pointer">
+          Desk / Wall Preview
+        </button>
+        <button id="viewBed" class="px-3 py-1 rounded text-xs font-semibold text-slate-300 hover:bg-slate-800 cursor-pointer">
+          2-Part Print Bed (180×180 mm)
+        </button>
+        <label class="flex items-center gap-1.5 px-2 text-xs text-slate-300 cursor-pointer select-none">
+          <input id="showPhone" type="checkbox" checked class="accent-sky-500" />
+          Phone Ghost
+        </label>
+      </div>
+
+      <!-- Dimensions Readout -->
+      <div id="dimOverlay" class="absolute bottom-3 left-3 z-10 bg-slate-900/90 backdrop-blur border border-slate-700/80 px-3 py-2 rounded-lg text-xs text-slate-300 space-y-0.5">
+        <div>Part 1 Footprint: <span id="outDims" class="font-mono text-sky-300">--</span></div>
+        <div>Part 2 Hex Back Cover: <span id="covDims" class="font-mono text-indigo-300">--</span></div>
+        <div id="modeNote" class="text-[11px] text-emerald-300">Echo Show 5 Wedge: Prints face-down with zero supports; stands at 18° tilt on desk.</div>
+      </div>
+
+      <div id="canvasContainer" class="w-full h-full"></div>
+    </main>
+  </div>
+
+  <script>
+    const DEFAULT_PRESETS = [{"group": "Realme", "name": "Realme 1 (CPH1859 / CPH1861)", "bodyL": 156.5, "bodyW": 75.2, "bodyT": 7.8, "bodyR": 8.5, "screenL": 137.0, "screenW": 68.5, "screenR": 2.0, "offsetX": 0.0, "offsetY": 1.2}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy S25", "bodyL": 146.9, "bodyW": 70.5, "bodyT": 7.2, "bodyR": 9.5, "screenL": 141.5, "screenW": 65.5, "screenR": 7.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy M34 5G", "bodyL": 161.7, "bodyW": 77.2, "bodyT": 8.8, "bodyR": 10.0, "screenL": 149.0, "screenW": 68.8, "screenR": 6.0, "offsetX": 0.0, "offsetY": 1.5}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy S24 Ultra", "bodyL": 162.3, "bodyW": 79.0, "bodyT": 8.6, "bodyR": 2.0, "screenL": 157.0, "screenW": 73.5, "screenR": 1.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy S23 / S24", "bodyL": 147.0, "bodyW": 70.6, "bodyT": 7.6, "bodyR": 9.5, "screenL": 141.2, "screenW": 65.4, "screenR": 7.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy A55 5G", "bodyL": 161.1, "bodyW": 77.4, "bodyT": 8.2, "bodyR": 10.5, "screenL": 151.5, "screenW": 69.8, "screenR": 7.5, "offsetX": 0.0, "offsetY": 0.5}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy A15 / A25", "bodyL": 160.1, "bodyW": 76.8, "bodyT": 8.4, "bodyR": 10.0, "screenL": 149.5, "screenW": 69.0, "screenR": 7.0, "offsetX": 0.0, "offsetY": 1.2}, {"group": "Apple iPhone", "name": "iPhone 16 / 15", "bodyL": 147.6, "bodyW": 71.6, "bodyT": 7.8, "bodyR": 11.5, "screenL": 141.4, "screenW": 65.4, "screenR": 9.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Apple iPhone", "name": "iPhone 16 Pro / 15 Pro", "bodyL": 149.6, "bodyW": 71.5, "bodyT": 8.25, "bodyR": 11.5, "screenL": 144.8, "screenW": 66.8, "screenR": 9.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Apple iPhone", "name": "iPhone 16 Pro Max / 15 Pro Max", "bodyL": 163.0, "bodyW": 77.6, "bodyT": 8.25, "bodyR": 12.0, "screenL": 158.0, "screenW": 72.8, "screenR": 10.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Apple iPhone", "name": "iPhone 14 / 13", "bodyL": 146.7, "bodyW": 71.5, "bodyT": 7.8, "bodyR": 11.5, "screenL": 140.2, "screenW": 64.8, "screenR": 9.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Apple iPhone", "name": "iPhone 13 mini / 12 mini", "bodyL": 131.5, "bodyW": 64.2, "bodyT": 7.65, "bodyR": 10.5, "screenL": 125.0, "screenW": 57.8, "screenR": 8.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Apple iPhone", "name": "iPhone SE (2020 / 2022)", "bodyL": 138.4, "bodyW": 67.3, "bodyT": 7.3, "bodyR": 10.5, "screenL": 104.0, "screenW": 58.5, "screenR": 1.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Google Pixel", "name": "Google Pixel 9 / 9 Pro", "bodyL": 152.8, "bodyW": 72.0, "bodyT": 8.5, "bodyR": 11.5, "screenL": 146.8, "screenW": 66.2, "screenR": 9.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Google Pixel", "name": "Google Pixel 8a", "bodyL": 152.1, "bodyW": 72.7, "bodyT": 8.9, "bodyR": 12.0, "screenL": 141.0, "screenW": 63.5, "screenR": 9.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Google Pixel", "name": "Google Pixel 7 / 8", "bodyL": 150.5, "bodyW": 70.8, "bodyT": 8.9, "bodyR": 11.0, "screenL": 142.8, "screenW": 64.2, "screenR": 8.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "OnePlus / Nothing / Xiaomi", "name": "OnePlus 12 / 13", "bodyL": 164.3, "bodyW": 75.8, "bodyT": 9.15, "bodyR": 11.0, "screenL": 157.8, "screenW": 70.6, "screenR": 8.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "OnePlus / Nothing / Xiaomi", "name": "OnePlus Nord CE 4", "bodyL": 162.5, "bodyW": 75.3, "bodyT": 8.4, "bodyR": 10.5, "screenL": 154.5, "screenW": 69.5, "screenR": 8.0, "offsetX": 0.0, "offsetY": 0.3}, {"group": "OnePlus / Nothing / Xiaomi", "name": "Nothing Phone (2a)", "bodyL": 161.7, "bodyW": 76.3, "bodyT": 8.6, "bodyR": 11.5, "screenL": 154.8, "screenW": 69.8, "screenR": 9.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "OnePlus / Nothing / Xiaomi", "name": "Redmi Note 13 Pro 5G", "bodyL": 161.2, "bodyW": 74.2, "bodyT": 8.0, "bodyR": 9.5, "screenL": 153.8, "screenW": 68.8, "screenR": 7.5, "offsetX": 0.0, "offsetY": 0.2}, {"group": "OnePlus / Nothing / Xiaomi", "name": "Redmi Note 10 / 11", "bodyL": 160.5, "bodyW": 74.5, "bodyT": 8.3, "bodyR": 9.5, "screenL": 148.5, "screenW": 67.0, "screenR": 6.5, "offsetX": 0.0, "offsetY": 1.0}, {"group": "Legacy Clock Donors", "name": "Redmi Note 7 / Note 8", "bodyL": 159.2, "bodyW": 75.2, "bodyT": 8.1, "bodyR": 9.5, "screenL": 145.5, "screenW": 67.2, "screenR": 5.5, "offsetX": 0.0, "offsetY": 1.5}, {"group": "Legacy Clock Donors", "name": "Samsung Galaxy M21 / M31", "bodyL": 159.0, "bodyW": 75.1, "bodyT": 8.9, "bodyR": 10.0, "screenL": 146.5, "screenW": 67.6, "screenR": 6.0, "offsetX": 0.0, "offsetY": 1.4}, {"group": "Legacy Clock Donors", "name": "Moto G5S Plus / G6", "bodyL": 153.5, "bodyW": 76.2, "bodyT": 8.0, "bodyR": 10.5, "screenL": 122.0, "screenW": 68.5, "screenR": 1.5, "offsetX": 0.0, "offsetY": 0.0}];
+    let ALL_PRESETS = [...DEFAULT_PRESETS];
+
+    fetch('./presets.json').then(r => r.ok ? r.json() : null).then(data => {
+      if (Array.isArray(data) && data.length) {
+        ALL_PRESETS = data;
+        populatePresets();
+      }
+    }).catch(() => {});
+
+    const presetSelect = document.getElementById('presetSelect');
+    const presetSearch = document.getElementById('presetSearch');
+
+    function populatePresets(filter = '') {
+      const q = filter.trim().toLowerCase();
+      presetSelect.innerHTML = '';
+      const groups = {};
+      ALL_PRESETS.forEach((p, idx) => {
+        if (q && !p.name.toLowerCase().includes(q) && !p.group.toLowerCase().includes(q)) return;
+        if (!groups[p.group]) groups[p.group] = [];
+        groups[p.group].push({ ...p, idx });
+      });
+      Object.entries(groups).forEach(([grp, items]) => {
+        const og = document.createElement('optgroup');
+        og.label = grp;
+        items.forEach(item => {
+          const opt = document.createElement('option');
+          opt.value = item.idx;
+          opt.textContent = `${item.name} (${item.bodyL}×${item.bodyW} mm)`;
+          og.appendChild(opt);
+        });
+        presetSelect.appendChild(og);
+      });
+    }
+
+    function applyPreset(idx) {
+      const p = ALL_PRESETS[idx];
+      if (!p) return;
+      document.getElementById('bodyL').value = p.bodyL;
+      document.getElementById('bodyW').value = p.bodyW;
+      document.getElementById('bodyT').value = p.bodyT;
+      document.getElementById('bodyR').value = p.bodyR;
+      document.getElementById('screenL').value = p.screenL;
+      document.getElementById('screenW').value = p.screenW;
+      document.getElementById('screenR').value = p.screenR;
+      document.getElementById('offsetX').value = p.offsetX;
+      document.getElementById('offsetY').value = p.offsetY;
+      rebuildScene();
+    }
+
+    populatePresets();
+    presetSearch.addEventListener('input', e => populatePresets(e.target.value));
+    presetSelect.addEventListener('change', e => applyPreset(Number(e.target.value)));
+
+    // Enclosure Form Factor Toggle ('wall_box' vs 'echoshow')
+    let enclosureStyle = 'wall_box';
+    const styleWallBtn = document.getElementById('styleWall');
+    const styleEchoBtn = document.getElementById('styleEcho');
+    const styleDesc = document.getElementById('styleDesc');
+    const echoControls = document.getElementById('echoControls');
+
+    styleWallBtn.addEventListener('click', () => {
+      enclosureStyle = 'wall_box';
+      styleWallBtn.className = 'py-1.5 px-2 rounded text-xs font-semibold bg-sky-600 text-white cursor-pointer transition';
+      styleEchoBtn.className = 'py-1.5 px-2 rounded text-xs font-semibold text-slate-300 hover:bg-slate-800 cursor-pointer transition';
+      styleDesc.textContent = 'v1: Slim flush profile, weighted bottom foot, dual rear keyhole slots, and 3M Command strip pads.';
+      echoControls.className = 'grid grid-cols-2 gap-2 pt-1 opacity-40 pointer-events-none transition-opacity';
+      rebuildScene();
+    });
+
+    styleEchoBtn.addEventListener('click', () => {
+      enclosureStyle = 'echoshow';
+      styleEchoBtn.className = 'py-1.5 px-2 rounded text-xs font-semibold bg-sky-600 text-white cursor-pointer transition';
+      styleWallBtn.className = 'py-1.5 px-2 rounded text-xs font-semibold text-slate-300 hover:bg-slate-800 cursor-pointer transition';
+      styleDesc.textContent = 'v2: 18° angled desk stand, tapered acoustic rear housing, and deep anti-tip base.';
+      echoControls.className = 'grid grid-cols-2 gap-2 pt-1 opacity-100 pointer-events-auto transition-opacity';
+      rebuildScene();
+    });
+
+    // Three.js Setup
+    const container = document.getElementById('canvasContainer');
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x090d16);
+
+    const camera = new THREE.PerspectiveCamera(40, container.clientWidth / container.clientHeight, 0.5, 2000);
+    camera.position.set(145, -185, 135);
+    camera.up.set(0, 0, 1);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(container.clientWidth, container.clientHeight);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    container.appendChild(renderer.domElement);
+
+    const controls = new THREE.OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.target.set(0, 0, 35);
+
+    scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+    const dir1 = new THREE.DirectionalLight(0xffffff, 0.85);
+    dir1.position.set(130, -160, 220);
+    scene.add(dir1);
+    const dir2 = new THREE.DirectionalLight(0x38bdf8, 0.4);
+    dir2.position.set(-140, 140, 100);
+    scene.add(dir2);
+
+    // 180 x 180 mm Bambu Lab A1 mini Build Plate Overlay
+    const bedGroup = new THREE.Group();
+    const bedPlane = new THREE.Mesh(
+      new THREE.PlaneGeometry(180, 180),
+      new THREE.MeshBasicMaterial({ color: 0x1e293b, side: THREE.DoubleSide, transparent: true, opacity: 0.45 })
+    );
+    bedPlane.position.z = -0.15;
+    bedGroup.add(bedPlane);
+
+    const gridHelper = new THREE.GridHelper(180, 18, 0x38bdf8, 0x334155);
+    gridHelper.rotation.x = Math.PI / 2;
+    gridHelper.position.z = -0.1;
+    bedGroup.add(gridHelper);
+
+    const borderPts = [
+      new THREE.Vector3(-90, -90, 0), new THREE.Vector3(90, -90, 0),
+      new THREE.Vector3(90, 90, 0), new THREE.Vector3(-90, 90, 0),
+      new THREE.Vector3(-90, -90, 0)
+    ];
+    const bedBorder = new THREE.Line(
+      new THREE.BufferGeometry().setFromPoints(borderPts),
+      new THREE.LineBasicMaterial({ color: 0x38bdf8 })
+    );
+    bedGroup.add(bedBorder);
+    scene.add(bedGroup);
+
+    let viewMode = 'desk'; // 'desk' | 'bed'
+    document.getElementById('viewDesk').addEventListener('click', () => {
+      viewMode = 'desk';
+      document.getElementById('viewDesk').className = 'px-3 py-1 rounded text-xs font-semibold bg-sky-600 text-white cursor-pointer';
+      document.getElementById('viewBed').className = 'px-3 py-1 rounded text-xs font-semibold text-slate-300 hover:bg-slate-800 cursor-pointer';
+      camera.position.set(145, -185, 135);
+      controls.target.set(0, 0, 35);
+      rebuildScene();
+    });
+    document.getElementById('viewBed').addEventListener('click', () => {
+      viewMode = 'bed';
+      document.getElementById('viewBed').className = 'px-3 py-1 rounded text-xs font-semibold bg-sky-600 text-white cursor-pointer';
+      document.getElementById('viewDesk').className = 'px-3 py-1 rounded text-xs font-semibold text-slate-300 hover:bg-slate-800 cursor-pointer';
+      camera.position.set(0, -175, 220);
+      controls.target.set(0, 0, 10);
+      rebuildScene();
+    });
+
+    function getParams() {
+      const num = id => parseFloat(document.getElementById(id).value) || 0;
+      const bodyL = num('bodyL'), bodyW = num('bodyW'), bodyT = num('bodyT'), bodyR = num('bodyR');
+      const caseAllow = num('casePreset'), fitTol = num('fitTol');
+      const screenL = num('screenL'), screenW = num('screenW'), screenR = num('screenR');
+      const offsetX = num('offsetX'), offsetY = num('offsetY');
+      const bezelThick = Math.max(2.4, num('bezelThick'));
+      const wallThick = Math.max(2.0, num('wallThick'));
+      const baseDepth = Math.max(20.0, num('baseDepth'));
+      const frameMargin = Math.max(5.0, num('frameMargin'));
+      const cableSide = document.getElementById('cableSide').value;
+      const cableW = num('cableW'), cableH = num('cableH');
+      const hexSize = Math.max(5.0, num('hexSize'));
+      const tiltAngleDeg = Math.max(5, Math.min(35, num('tiltAngle')));
+      const topDepth = Math.max(15, num('topDepth'));
+
+      const pocketX = bodyL + 2 * (caseAllow + fitTol);
+      const pocketY = bodyW + 2 * (caseAllow + fitTol);
+      const pocketR = bodyR + caseAllow + fitTol;
+
+      const outerX = pocketX + 2 * frameMargin;
+      const outerY = pocketY + 2 * frameMargin;
+      const outerR = Math.min(12, frameMargin + 2);
+      const coverThick = 2.6;
+      const coverLipDepth = 3.0;
+      const coverClear = 0.25;
+
+      const minPocketZ = bezelThick + bodyT + 2 * caseAllow + coverLipDepth + 2.5;
+      const topZ = enclosureStyle === 'echoshow'
+        ? Math.max(topDepth, minPocketZ)
+        : Math.max(baseDepth, minPocketZ);
+
+      const botZ = enclosureStyle === 'echoshow'
+        ? Math.max(baseDepth, topZ + outerY * Math.tan(tiltAngleDeg * Math.PI / 180))
+        : topZ;
+
+      const tiltActualRad = Math.atan2(botZ - topZ, outerY);
+      const midZ = (topZ + botZ) / 2;
+
+      const coverX = pocketX + 2 * wallThick - 2 * coverClear;
+      const coverY = (pocketY + 2 * wallThick - 2 * coverClear) / Math.cos(tiltActualRad);
+      const coverR = Math.max(2.0, pocketR + wallThick - coverClear);
+
+      return {
+        enclosureStyle, tiltAngleDeg, topDepth,
+        bodyL, bodyW, bodyT, bodyR, caseAllow, fitTol,
+        screenL, screenW, screenR, offsetX, offsetY,
+        bezelThick, wallThick, baseDepth, frameMargin,
+        cableSide, cableW, cableH, hexSize,
+        pocketX, pocketY, pocketR, outerX, outerY, outerR,
+        topZ, botZ, midZ, tiltActualRad,
+        coverThick, coverLipDepth, coverClear, coverX, coverY, coverR
+      };
+    }
+
+    function makeRoundedRectShape(w, h, r, cx = 0, cy = 0) {
+      const s = new THREE.Shape();
+      const rc = Math.min(r, w / 2 - 0.01, h / 2 - 0.01);
+      const x = cx - w / 2, y = cy - h / 2;
+      s.moveTo(x + rc, y);
+      s.lineTo(x + w - rc, y);
+      s.quadraticCurveTo(x + w, y, x + w, y + rc);
+      s.lineTo(x + w, y + h - rc);
+      s.quadraticCurveTo(x + w, y + h, x + w - rc, y + h);
+      s.lineTo(x + rc, y + h);
+      s.quadraticCurveTo(x, y + h, x, y + h - rc);
+      s.lineTo(x, y + rc);
+      s.quadraticCurveTo(x, y, x + rc, y);
+      return s;
+    }
+
+    function makeRoundedRectPath(w, h, r, cx = 0, cy = 0) {
+      const p = new THREE.Path();
+      const rc = Math.min(r, w / 2 - 0.01, h / 2 - 0.01);
+      const x = cx - w / 2, y = cy - h / 2;
+      p.moveTo(x + rc, y);
+      p.lineTo(x + w - rc, y);
+      p.quadraticCurveTo(x + w, y, x + w, y + rc);
+      p.lineTo(x + w, y + h - rc);
+      p.quadraticCurveTo(x + w, y + h, x + w - rc, y + h);
+      p.lineTo(x + rc, y + h);
+      p.quadraticCurveTo(x, y + h, x, y + h - rc);
+      p.lineTo(x, y + rc);
+      p.quadraticCurveTo(x, y, x + rc, y);
+      return p;
+    }
+
+    // Clip every vertex of a geometry above the rear cover plane so Echo Show 5 taper is exact & clean
+    function clipGeometryToRearPlane(geo, p, zOffset = 0) {
+      const pos = geo.attributes.position;
+      const tanA = Math.tan(p.tiltActualRad);
+      for (let i = 0; i < pos.count; i++) {
+        const y = pos.getY(i);
+        const z = pos.getZ(i);
+        const maxZ = p.midZ - y * tanA + zOffset;
+        if (z > maxZ) pos.setZ(i, maxZ);
+      }
+      geo.computeVertexNormals();
+      return geo;
+    }
+
+    let assemblyRoot = new THREE.Group();
+    let part1Group = new THREE.Group();
+    let part2Group = new THREE.Group();
+    let phoneGhost = null;
+    scene.add(assemblyRoot);
+
+    function buildPart1(p) {
+      const g = new THREE.Group();
+      const mat = new THREE.MeshStandardMaterial({ color: 0x334155, roughness: 0.45, metalness: 0.12 });
+
+      // Layer A: Front Faceplate (Z = 0 to bezelThick) with Active Screen Cutout
+      const faceShape = makeRoundedRectShape(p.outerX, p.outerY, p.outerR);
+      faceShape.holes.push(makeRoundedRectPath(p.screenL, p.screenW, p.screenR, p.offsetX, p.offsetY));
+      const faceGeo = new THREE.ExtrudeGeometry(faceShape, { depth: p.bezelThick, bevelEnabled: false, curveSegments: 24 });
+      g.add(new THREE.Mesh(faceGeo, mat));
+
+      // Layer B: Lower Perimeter Walls (Z = bezelThick to slotStartZ)
+      const slotStartZ = p.bezelThick + (p.bodyT + 2 * p.caseAllow) / 2 - p.cableH / 2;
+      const lowerH = Math.max(0.5, slotStartZ - p.bezelThick);
+      const wallShape = makeRoundedRectShape(p.outerX, p.outerY, p.outerR);
+      wallShape.holes.push(makeRoundedRectPath(p.pocketX, p.pocketY, p.pocketR));
+      const lowerGeo = new THREE.ExtrudeGeometry(wallShape, { depth: lowerH, bevelEnabled: false, curveSegments: 24 });
+      lowerGeo.translate(0, 0, p.bezelThick);
+      g.add(new THREE.Mesh(lowerGeo, mat));
+
+      // Layer C: Upper Perimeter Walls tapered to the Echo Show 5 back plane (or flat for wall_box)
+      const upperStartZ = p.bezelThick + lowerH;
+      const maxUpperH = Math.max(1.0, p.botZ - upperStartZ);
+      const topWallThick = (p.outerY - p.pocketY) / 2;
+      const sideWallThick = (p.outerX - p.pocketX) / 2;
+
+      function addClippedBox(w, h, d, x, y, zCenter) {
+        const bg = new THREE.BoxGeometry(w, h, d, 1, 16, 1);
+        bg.translate(x, y, zCenter);
+        clipGeometryToRearPlane(bg, p, 0);
+        g.add(new THREE.Mesh(bg, mat));
+      }
+
+      // Top wall bar
+      addClippedBox(p.outerX, topWallThick, maxUpperH, 0, p.pocketY / 2 + topWallThick / 2, upperStartZ + maxUpperH / 2);
+
+      // Bottom wall segments (with rear-open speaker slots + optional bottom cable slot)
+      const botY = -p.pocketY / 2 - topWallThick / 2;
+      const speakerX1 = -p.pocketX * 0.28, speakerX2 = p.pocketX * 0.28, spkW = 12.0;
+      const cuts = [
+        [speakerX1 - spkW / 2, speakerX1 + spkW / 2],
+        [speakerX2 - spkW / 2, speakerX2 + spkW / 2]
+      ];
+      if (p.cableSide === 'bottom') cuts.push([-p.cableW / 2, p.cableW / 2]);
+      cuts.sort((a, b) => a[0] - b[0]);
+
+      let curX = -p.outerX / 2;
+      cuts.forEach(([c0, c1]) => {
+        if (c0 > curX + 0.5) {
+          const segW = c0 - curX;
+          addClippedBox(segW, topWallThick, maxUpperH, curX + segW / 2, botY, upperStartZ + maxUpperH / 2);
+        }
+        curX = Math.max(curX, c1);
+      });
+      if (p.outerX / 2 > curX + 0.5) {
+        const segW = p.outerX / 2 - curX;
+        addClippedBox(segW, topWallThick, maxUpperH, curX + segW / 2, botY, upperStartZ + maxUpperH / 2);
+      }
+
+      // Left & Right side walls (with rear-open cable slot on selected side)
+      ['left', 'right'].forEach(side => {
+        const sx = side === 'right' ? (p.pocketX / 2 + sideWallThick / 2) : (-p.pocketX / 2 - sideWallThick / 2);
+        if (p.cableSide === side) {
+          const segH = (p.pocketY - p.cableW) / 2;
+          if (segH > 0.5) {
+            addClippedBox(sideWallThick, segH, maxUpperH, sx, p.cableW / 2 + segH / 2, upperStartZ + maxUpperH / 2);
+            addClippedBox(sideWallThick, segH, maxUpperH, sx, -p.cableW / 2 - segH / 2, upperStartZ + maxUpperH / 2);
+          }
+        } else {
+          addClippedBox(sideWallThick, p.pocketY, maxUpperH, sx, 0, upperStartZ + maxUpperH / 2);
+        }
+      });
+
+      // 4 Corner M3 Screw Bosses clipped cleanly below the rear cover seat
+      const bossH = Math.max(2.0, p.botZ - p.bezelThick);
+      [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sy]) => {
+        const bx = sx * (p.coverX / 2 - 5.5);
+        const by = sy * (p.pocketY / 2 - 3.8);
+        const bossShape = new THREE.Shape();
+        bossShape.absarc(bx, by, 3.75, 0, Math.PI * 2, false);
+        const hole = new THREE.Path();
+        hole.absarc(bx, by, 1.42, 0, Math.PI * 2, true);
+        bossShape.holes.push(hole);
+        const bossGeo = new THREE.ExtrudeGeometry(bossShape, { depth: bossH, bevelEnabled: false, curveSegments: 16 });
+        bossGeo.translate(0, 0, p.bezelThick);
+        clipGeometryToRearPlane(bossGeo, p, -p.coverLipDepth);
+        g.add(new THREE.Mesh(bossGeo, mat));
+      });
+
+      return g;
+    }
+
+    function buildPart2(p) {
+      const g = new THREE.Group();
+      const mat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, roughness: 0.4, metalness: 0.12 });
+
+      const coverShape = makeRoundedRectShape(p.coverX, p.coverY, p.coverR);
+
+      // 4 Corner M3 Holes
+      [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sy]) => {
+        const bx = sx * (p.coverX / 2 - 5.5);
+        const by = sy * ((p.pocketY / 2 - 3.8) / Math.cos(p.tiltActualRad));
+        const h = new THREE.Path();
+        h.absarc(bx, by, 1.6, 0, Math.PI * 2, true);
+        coverShape.holes.push(h);
+      });
+
+      // 2 Keyhole Wall-Mount Slots in Wall Box mode
+      const keyholePositions = p.enclosureStyle === 'wall_box'
+        ? [[-p.coverX * 0.26, p.coverY * 0.14], [p.coverX * 0.26, p.coverY * 0.14]]
+        : [];
+
+      keyholePositions.forEach(([kx, ky]) => {
+        const kh = new THREE.Path();
+        kh.absarc(kx, ky - 4.2, 4.2, Math.PI * 0.35, Math.PI * 0.65, true);
+        kh.lineTo(kx - 2.2, ky + 5.2);
+        kh.absarc(kx, ky + 5.2, 2.2, Math.PI, 0, true);
+        kh.lineTo(kx + 2.2, ky - 1.0);
+        coverShape.holes.push(kh);
+      });
+
+      // Hexagonal Honeycomb Ventilation Holes
+      const strut = 2.2;
+      const pitchX = (p.hexSize + strut) * 0.866025;
+      const pitchY = p.hexSize + strut;
+      const nx = Math.floor((p.coverX - 36) / pitchX);
+      const ny = Math.floor((p.coverY - 24) / pitchY);
+      const hexRadius = (p.hexSize / 2) / 0.866025;
+
+      for (let ix = -Math.floor(nx / 2); ix <= Math.floor(nx / 2); ix++) {
+        for (let iy = -Math.floor(ny / 2); iy <= Math.floor(ny / 2); iy++) {
+          const hx = ix * pitchX;
+          const hy = iy * pitchY + (Math.abs(ix) % 2 === 1 ? pitchY / 2 : 0);
+          if (Math.abs(hx) >= p.coverX / 2 - 18 || Math.abs(hy) >= p.coverY / 2 - 12) continue;
+
+          let nearKeyhole = false;
+          for (const [kx, ky] of keyholePositions) {
+            if (Math.abs(hx - kx) < 12.5 && Math.abs(hy - ky) < 15.0) nearKeyhole = true;
+          }
+          if (nearKeyhole) continue;
+
+          const hexHole = new THREE.Path();
+          for (let k = 0; k < 6; k++) {
+            const ang = (Math.PI / 3) * k + Math.PI / 6;
+            const vx = hx + hexRadius * Math.cos(ang);
+            const vy = hy + hexRadius * Math.sin(ang);
+            if (k === 0) hexHole.moveTo(vx, vy);
+            else hexHole.lineTo(vx, vy);
+          }
+          hexHole.closePath();
+          coverShape.holes.push(hexHole);
+        }
+      }
+
+      const geo = new THREE.ExtrudeGeometry(coverShape, { depth: p.coverThick, bevelEnabled: false, curveSegments: 16 });
+      g.add(new THREE.Mesh(geo, mat));
+      return g;
+    }
+
+    function rebuildScene() {
+      const p = getParams();
+
+      scene.remove(assemblyRoot);
+      assemblyRoot = new THREE.Group();
+      part1Group = buildPart1(p);
+      part2Group = buildPart2(p);
+
+      if (viewMode === 'desk') {
+        bedGroup.visible = false;
+
+        part1Group.position.set(0, 0, 0);
+        // Seat Part 2 flush onto the rear face (tilted in Echo Show mode!)
+        part2Group.position.set(0, 0, p.midZ - p.coverLipDepth + 0.3);
+        part2Group.rotation.set(-p.tiltActualRad, 0, 0);
+
+        assemblyRoot.add(part1Group);
+        assemblyRoot.add(part2Group);
+
+        if (document.getElementById('showPhone').checked) {
+          const phoneGeo = new THREE.BoxGeometry(p.bodyL, p.bodyW, p.bodyT);
+          const phoneMat = new THREE.MeshStandardMaterial({
+            color: 0xf59e0b, transparent: true, opacity: 0.38, roughness: 0.2
+          });
+          phoneGhost = new THREE.Mesh(phoneGeo, phoneMat);
+          phoneGhost.position.set(0, 0, p.bezelThick + p.caseAllow + p.bodyT / 2);
+          assemblyRoot.add(phoneGhost);
+        }
+
+        // Rotate upright onto the tabletop (Z=0 is desk surface)
+        if (p.enclosureStyle === 'echoshow') {
+          assemblyRoot.rotation.x = Math.PI / 2 - p.tiltActualRad;
+          assemblyRoot.position.z = (p.outerY / 2) * Math.sin(p.tiltActualRad);
+        } else {
+          assemblyRoot.rotation.x = Math.PI / 2;
+          assemblyRoot.position.z = p.outerY / 2;
+        }
+      } else {
+        // 2-Part Print Bed Layout (Part 1 face-down + Part 2 flat on Z=0)
+        bedGroup.visible = true;
+        part1Group.position.set(0, -p.outerY / 2 - 4, 0);
+        part2Group.position.set(0, p.coverY / 2 + 4, 0);
+        assemblyRoot.add(part1Group);
+        assemblyRoot.add(part2Group);
+      }
+
+      scene.add(assemblyRoot);
+
+      // Readouts & Bambu A1 mini (180x180 mm) Check
+      const zText = p.enclosureStyle === 'echoshow'
+        ? `${p.botZ.toFixed(1)}→${p.topZ.toFixed(1)} mm wedge`
+        : `${p.topZ.toFixed(1)} mm`;
+      document.getElementById('outDims').textContent = `${p.outerX.toFixed(1)} × ${p.outerY.toFixed(1)} × ${zText}`;
+      document.getElementById('covDims').textContent = `${p.coverX.toFixed(1)} × ${p.coverY.toFixed(1)} × ${p.coverThick.toFixed(1)} mm`;
+
+      document.getElementById('modeNote').textContent = p.enclosureStyle === 'echoshow'
+        ? `Echo Show 5 Wedge (${p.tiltAngleDeg}° tilt): Prints face-down with zero supports; deep ${p.botZ.toFixed(1)} mm base foot prevents tipping.`
+        : `Wall / Upright Box: Flush ${p.topZ.toFixed(1)} mm profile with dual rear keyhole slots & Command strip pads.`;
+
+      const badge = document.getElementById('bedBadge');
+      const diagLen = (p.outerX + p.outerY) / Math.SQRT2;
+      if (p.outerX <= 180 && p.outerY <= 180) {
+        badge.className = 'px-2.5 py-1 rounded-md text-xs font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
+        badge.textContent = `A1 mini (180×180): Straight Fit (${p.outerX.toFixed(1)}×${p.outerY.toFixed(1)} mm)`;
+      } else if (diagLen <= 180) {
+        badge.className = 'px-2.5 py-1 rounded-md text-xs font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30';
+        badge.textContent = `A1 mini (180×180): 45° Diagonal Fit (${diagLen.toFixed(1)} mm span)`;
+      } else {
+        badge.className = 'px-2.5 py-1 rounded-md text-xs font-semibold bg-rose-500/15 text-rose-300 border border-rose-500/30';
+        badge.textContent = `Exceeds 180×180 mm Bed (${p.outerX.toFixed(1)}×${p.outerY.toFixed(1)} mm)`;
+      }
+    }
+
+    // Export Part 1 or Part 2 in its exact flat print-bed orientation (Z=0 on plate)
+    function exportPrintOrientationSTL(buildFn, filename) {
+      const p = getParams();
+      const tempGroup = buildFn(p);
+      tempGroup.updateMatrixWorld(true);
+      const triangles = [];
+      const vA = new THREE.Vector3(), vB = new THREE.Vector3(), vC = new THREE.Vector3();
+      const cb = new THREE.Vector3(), ab = new THREE.Vector3();
+
+      tempGroup.traverse(obj => {
+        if (!obj.isMesh) return;
+        const geo = obj.geometry;
+        const pos = geo.attributes.position;
+        const idx = geo.index;
+        const mat = obj.matrixWorld;
+        const triCount = idx ? idx.count / 3 : pos.count / 3;
+        for (let i = 0; i < triCount; i++) {
+          const i0 = idx ? idx.getX(i * 3) : i * 3;
+          const i1 = idx ? idx.getX(i * 3 + 1) : i * 3 + 1;
+          const i2 = idx ? idx.getX(i * 3 + 2) : i * 3 + 2;
+          vA.fromBufferAttribute(pos, i0).applyMatrix4(mat);
+          vB.fromBufferAttribute(pos, i1).applyMatrix4(mat);
+          vC.fromBufferAttribute(pos, i2).applyMatrix4(mat);
+          cb.subVectors(vC, vB);
+          ab.subVectors(vA, vB);
+          cb.cross(ab).normalize();
+          triangles.push({ n: cb.clone(), a: vA.clone(), b: vB.clone(), c: vC.clone() });
+        }
+      });
+
+      const buffer = new ArrayBuffer(84 + triangles.length * 50);
+      const view = new DataView(buffer);
+      view.setUint32(80, triangles.length, true);
+      let offset = 84;
+      for (const t of triangles) {
+        view.setFloat32(offset, t.n.x, true); offset += 4;
+        view.setFloat32(offset, t.n.y, true); offset += 4;
+        view.setFloat32(offset, t.n.z, true); offset += 4;
+        [t.a, t.b, t.c].forEach(v => {
+          view.setFloat32(offset, v.x, true); offset += 4;
+          view.setFloat32(offset, v.y, true); offset += 4;
+          view.setFloat32(offset, v.z, true); offset += 4;
+        });
+        view.setUint16(offset, 0, true); offset += 2;
+      }
+
+      const blob = new Blob([buffer], { type: 'application/octet-stream' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function generateCustomSCAD(p) {
+      return `// Generated by Parametric 3D Phone Wall & Echo Show 5 Clock Enclosure Studio
+enclosure_style = "${p.enclosureStyle}"; // "wall_box" (v1) or "echoshow" (v2)
+part_to_render  = "both";
+
+phone_length   = ${p.bodyL};
+phone_width    = ${p.bodyW};
+phone_thick    = ${p.bodyT};
+phone_corner_r = ${p.bodyR};
+
+case_allowance = ${p.caseAllow};
+fit_tolerance  = ${p.fitTol};
+
+screen_length   = ${p.screenL};
+screen_width    = ${p.screenW};
+screen_corner_r = ${p.screenR};
+screen_offset_x = ${p.offsetX};
+screen_offset_y = ${p.offsetY};
+
+bezel_thick        = ${p.bezelThick};
+wall_thick         = ${p.wallThick};
+outer_frame_margin = ${p.frameMargin};
+outer_corner_r     = ${p.outerR};
+
+tilt_angle_deg  = ${p.tiltAngleDeg};
+wedge_top_depth = ${p.topDepth};
+min_base_depth  = ${p.baseDepth};
+
+cable_side     = "${p.cableSide}";
+cable_slot_w   = ${p.cableW};
+cable_slot_h   = ${p.cableH};
+speaker_slots  = true;
+
+cover_thick     = ${p.coverThick};
+cover_lip_depth = ${p.coverLipDepth};
+cover_clearance = ${p.coverClear};
+hex_cell_size   = ${p.hexSize};
+hex_strut_w     = 2.2;
+screw_hole_d    = 3.2;
+
+$fn = 64;
+
+pocket_x = phone_length + 2 * (case_allowance + fit_tolerance);
+pocket_y = phone_width  + 2 * (case_allowance + fit_tolerance);
+pocket_r = phone_corner_r + case_allowance + fit_tolerance;
+outer_x  = pocket_x + 2 * outer_frame_margin;
+outer_y  = pocket_y + 2 * outer_frame_margin;
+
+min_pocket_z = bezel_thick + phone_thick + 2*case_allowance + cover_lip_depth + 2.5;
+top_z = (enclosure_style == "echoshow") ? max(wedge_top_depth, min_pocket_z) : max(min_base_depth, min_pocket_z);
+bot_z = (enclosure_style == "echoshow") ? max(min_base_depth, top_z + outer_y * tan(tilt_angle_deg)) : top_z;
+tilt_actual = atan2(bot_z - top_z, outer_y);
+mid_z = (top_z + bot_z) / 2;
+
+cover_x = pocket_x + 2 * wall_thick - 2 * cover_clearance;
+cover_y = pocket_y + 2 * wall_thick - 2 * cover_clearance;
+cover_r = max(2.0, pocket_r + wall_thick - cover_clearance);
+
+module rrect_2d(w, h, r) {
+    rc = min(r, min(w, h)/2 - 0.01);
+    offset(r = rc) offset(delta = -rc) square([w, h], center = true);
+}
+
+module keyhole_2d() {
+    union() {
+        translate([0, -4.5]) circle(d = 8.5);
+        hull() {
+            translate([0, -4.5]) circle(d = 4.5);
+            translate([0, 5.5])  circle(d = 4.5);
+        }
+    }
+}
+
+module outer_shell_solid() {
+    if (enclosure_style == "echoshow") {
+        intersection() {
+            linear_extrude(height = bot_z + 1.0)
+                rrect_2d(outer_x, outer_y, outer_corner_r);
+            rotate([90, 0, 90])
+                linear_extrude(height = outer_x + 2.0, center = true)
+                    polygon(points = [[-outer_y/2, 0], [outer_y/2, 0], [outer_y/2, top_z], [-outer_y/2, bot_z]]);
+        }
+    } else {
+        linear_extrude(height = top_z)
+            rrect_2d(outer_x, outer_y, outer_corner_r);
+    }
+}
+
+module on_back_plane() {
+    translate([0, 0, mid_z]) rotate([-tilt_actual, 0, 0]) children();
+}
+
+module part1_main_clock_body() {
+    difference() {
+        outer_shell_solid();
+
+        translate([screen_offset_x, screen_offset_y, -0.1])
+            linear_extrude(height = bezel_thick + 0.2)
+                rrect_2d(screen_length, screen_width, screen_corner_r);
+
+        translate([0, 0, bezel_thick])
+            linear_extrude(height = bot_z + 2.0)
+                rrect_2d(pocket_x, pocket_y, pocket_r);
+
+        on_back_plane()
+            translate([0, 0, -cover_lip_depth])
+                linear_extrude(height = cover_lip_depth + 4.0)
+                    rrect_2d(cover_x + 2*cover_clearance, cover_y/cos(tilt_actual) + 2*cover_clearance, cover_r + cover_clearance);
+
+        slot_z_start = bezel_thick + (phone_thick + 2*case_allowance)/2 - cable_slot_h/2;
+        if (cable_side == "right") {
+            translate([outer_x/2 - (outer_x - pocket_x)/4, 0, slot_z_start + bot_z/2])
+                cube([(outer_x - pocket_x)/2 + 2.0, cable_slot_w, bot_z], center = true);
+        } else if (cable_side == "left") {
+            translate([-outer_x/2 + (outer_x - pocket_x)/4, 0, slot_z_start + bot_z/2])
+                cube([(outer_x - pocket_x)/2 + 2.0, cable_slot_w, bot_z], center = true);
+        } else {
+            translate([0, -outer_y/2 + (outer_y - pocket_y)/4, slot_z_start + bot_z/2])
+                cube([cable_slot_w, (outer_y - pocket_y)/2 + 2.0, bot_z], center = true);
+        }
+
+        if (speaker_slots) {
+            for (sx = [-pocket_x*0.28, pocket_x*0.28]) {
+                translate([sx, -outer_y/2 + (outer_y - pocket_y)/4, slot_z_start + bot_z/2])
+                    cube([12.0, (outer_y - pocket_y)/2 + 2.0, bot_z], center = true);
+            }
+        }
+    }
+
+    intersection() {
+        union() {
+            for (sx = [-1, 1], sy = [-1, 1]) {
+                bx = sx * (cover_x/2 - 5.5);
+                by = sy * (pocket_y/2 - 3.8);
+                translate([bx, by, bezel_thick]) {
+                    difference() {
+                        cylinder(h = bot_z, d = 7.5);
+                        translate([0, 0, 1.0]) cylinder(h = bot_z, d = 2.85);
+                    }
+                }
+            }
+        }
+        on_back_plane()
+            translate([0, 0, -bot_z - cover_lip_depth])
+                cube([outer_x*2, outer_y*2, bot_z*2], center = true);
+    }
+}
+
+module part2_hex_back_cover() {
+    cov_y_eff = cover_y / cos(tilt_actual);
+    pitch_x = (hex_cell_size + hex_strut_w) * 0.866025;
+    pitch_y = (hex_cell_size + hex_strut_w);
+    nx = floor((cover_x - 36) / pitch_x);
+    ny = floor((cov_y_eff - 24) / pitch_y);
+
+    difference() {
+        linear_extrude(height = cover_thick)
+            rrect_2d(cover_x, cov_y_eff, cover_r);
+
+        translate([0, 0, -0.1])
+            linear_extrude(height = cover_thick + 0.2)
+                difference() {
+                    union() {
+                        for (ix = [-nx/2 : 1 : nx/2]) {
+                            for (iy = [-ny/2 : 1 : ny/2]) {
+                                hx = ix * pitch_x;
+                                hy = iy * pitch_y + ((abs(round(ix)) % 2 == 1) ? pitch_y/2 : 0);
+                                if (abs(hx) < (cover_x/2 - 18) && abs(hy) < (cov_y_eff/2 - 12)) {
+                                    translate([hx, hy]) rotate([0, 0, 30]) circle(d = hex_cell_size / 0.866025, $fn = 6);
+                                }
+                            }
+                        }
+                    }
+                    if (enclosure_style == "wall_box") {
+                        for (kx = [-cover_x*0.26, cover_x*0.26]) {
+                            translate([kx, cov_y_eff*0.14]) rrect_2d(18.0, 24.0, 4.0);
+                        }
+                    }
+                }
+
+        if (enclosure_style == "wall_box") {
+            for (kx = [-cover_x*0.26, cover_x*0.26]) {
+                translate([kx, cov_y_eff*0.14, -0.1])
+                    linear_extrude(height = cover_thick + 0.2) keyhole_2d();
+            }
+        }
+
+        for (sx = [-1, 1], sy = [-1, 1]) {
+            bx = sx * (cover_x/2 - 5.5);
+            by = sy * ((pocket_y/2 - 3.8) / cos(tilt_actual));
+            translate([bx, by, -0.1]) {
+                cylinder(h = cover_thick + 0.2, d = screw_hole_d);
+                translate([0, 0, cover_thick - 1.3]) cylinder(h = 1.5, d1 = screw_hole_d, d2 = 6.0);
+            }
+        }
+    }
+}
+
+if (part_to_render == "part1") part1_main_clock_body();
+else if (part_to_render == "part2") part2_hex_back_cover();
+else {
+    cov_y_eff = cover_y / cos(tilt_actual);
+    translate([0, -outer_y/2 - 6, 0]) part1_main_clock_body();
+    translate([0, cov_y_eff/2 + 6, 0]) part2_hex_back_cover();
+}
+`;
+    }
+
+    document.getElementById('btnStl1').addEventListener('click', () => {
+      const filename = enclosureStyle === 'echoshow' ? 'part1_v2_echoshow_wedge.stl' : 'part1_v1_wall_box.stl';
+      exportPrintOrientationSTL(buildPart1, filename);
+    });
+    document.getElementById('btnStl2').addEventListener('click', () => {
+      const filename = enclosureStyle === 'echoshow' ? 'part2_v2_echoshow_wedge.stl' : 'part2_v1_wall_box.stl';
+      exportPrintOrientationSTL(buildPart2, filename);
+    });
+    document.getElementById('btnScad').addEventListener('click', () => {
+      const scad = generateCustomSCAD(getParams());
+      const blob = new Blob([scad], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = enclosureStyle === 'echoshow' ? 'phone_clock_v2_echoshow_wedge.scad' : 'phone_clock_v1_wall_box.scad';
+      a.click();
+      URL.revokeObjectURL(url);
+    });
+
+    document.querySelectorAll('input, select').forEach(el => {
+      if (el.id !== 'presetSearch' && el.id !== 'presetSelect') {
+        el.addEventListener('input', rebuildScene);
+        el.addEventListener('change', rebuildScene);
+      }
+    });
+
+    window.addEventListener('resize', () => {
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    });
+
+    rebuildScene();
+
+    function animate() {
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    }
+    animate();
+  </script>
+</body>
 </html>
