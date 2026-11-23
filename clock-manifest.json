@@ -1,0 +1,18 @@
+{
+  "name": "Smart Clock OS",
+  "short_name": "SmartClock",
+  "description": "Always-on landscape smart desk & wall clock companion with live weather, timer, stopwatch, and alarms.",
+  "start_url": "./clock.html",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Crect width='512' height='512' rx='128' fill='%23000000'/%3E%3Ccircle cx='256' cy='256' r='200' fill='none' stroke='%23f59e0b' stroke-width='32'/%3E%3Cpath d='M256 128v128l96 56' stroke='%23f59e0b' stroke-width='28' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3Ccircle cx='256' cy='256' r='18' fill='%23f59e0b'/%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
