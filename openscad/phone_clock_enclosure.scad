@@ -29,8 +29,8 @@ fit_tolerance  = 0.4;     // mm per side clearance
 screen_length   = 137.0;  // mm
 screen_width    = 68.5;   // mm
 screen_corner_r = 2.0;    // mm
-screen_offset_x = 0.0;    // mm
-screen_offset_y = 1.2;    // mm
+screen_offset_x = -1.3;   // mm (calibrated for Realme 1: centers screen with cable on right)
+screen_offset_y = 0.0;    // mm (symmetrical side bezels)
 
 // 4. Housing, Bezel & Echo Show 5 Wedge Geometry
 bezel_thick        = 2.6;   // mm (>= 2.4 mm solid front faceplate)
@@ -135,6 +135,8 @@ module on_back_plane() {
 }
 
 module part1_main_clock_body() {
+    phone_clear_z = bezel_thick + phone_thick + 2*case_allowance + 0.4;
+
     difference() {
         outer_shell_solid();
 
@@ -147,6 +149,14 @@ module part1_main_clock_body() {
         translate([0, 0, bezel_thick])
             linear_extrude(height = bot_z + 2.0)
                 rrect_2d(pocket_x, pocket_y, pocket_r);
+
+        // 2b. Button Relief Channels (prevents accidental pressing of power/volume keys)
+        // Top edge: Volume keys
+        translate([0, pocket_y/2 + 0.5, bezel_thick + (phone_thick + 2*case_allowance)/2])
+            cube([55.0, 2.0, phone_thick + 2*case_allowance + 0.5], center = true);
+        // Bottom edge: Power key
+        translate([-12.0, -pocket_y/2 - 0.5, bezel_thick + (phone_thick + 2*case_allowance)/2])
+            cube([35.0, 2.0, phone_thick + 2*case_allowance + 0.5], center = true);
 
         // 3. Recessed Rear Lip Seat aligned flush with the rear face (tilted in Echo Show mode!)
         on_back_plane()
@@ -176,32 +186,22 @@ module part1_main_clock_body() {
         }
     }
 
-    // Subtle internal centering ribs (4 sides)
-    rib_h = phone_thick + 2*case_allowance;
-    for (sx = [-1, 1]) {
-        if (!(cable_side == "right" && sx == 1) && !(cable_side == "left" && sx == -1)) {
-            translate([sx * (pocket_x/2 - 0.25), 0, bezel_thick + rib_h/2])
-                cube([0.5, 14.0, rib_h], center = true);
-        }
-    }
-    for (sy = [-1, 1]) {
-        if (!(cable_side == "bottom" && sy == -1)) {
-            translate([0, sy * (pocket_y/2 - 0.25), bezel_thick + rib_h/2])
-                cube([18.0, 0.5, rib_h], center = true);
-        }
-    }
-
-    // 4 Corner M3 Bosses trimmed cleanly at cover seat plane
+    // 4 Corner M3 Bosses positioned strictly behind the phone pocket (starts at phone_clear_z)
+    // with a printable 45° chamfer transition. The phone pocket zone [bezel_thick, phone_clear_z] is 100% clear!
     cov_y_eff = cover_y / cos(tilt_actual);
     intersection() {
         union() {
             for (sx = [-1, 1], sy = [-1, 1]) {
                 bx = sx * (cover_x/2 - 5.5);
                 by = sy * (pocket_y/2 - 3.8);
-                translate([bx, by, bezel_thick]) {
+                // 45° chamfer lead-in from corner walls
+                translate([bx, by, phone_clear_z])
+                    cylinder(h = 1.6, d1 = 4.5, d2 = 7.5);
+                // Solid boss post extending to cover seat
+                translate([bx, by, phone_clear_z + 1.5]) {
                     difference() {
-                        cylinder(h = bot_z, d = 7.5);
-                        translate([0, 0, 1.0])
+                        cylinder(h = bot_z - phone_clear_z, d = 7.5);
+                        translate([0, 0, 0.5])
                             cylinder(h = bot_z, d = 2.85);
                     }
                 }

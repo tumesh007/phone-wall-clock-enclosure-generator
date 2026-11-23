@@ -150,11 +150,11 @@
           </div>
           <div>
             <label class="text-[11px] text-slate-400">Screen Offset X</label>
-            <input id="offsetX" type="number" step="0.1" value="0.0" />
+            <input id="offsetX" type="number" step="0.1" value="-1.3" />
           </div>
           <div class="col-span-2">
             <label class="text-[11px] text-slate-400">Screen Offset Y (+Up / -Down)</label>
-            <input id="offsetY" type="number" step="0.1" value="1.2" />
+            <input id="offsetY" type="number" step="0.1" value="0.0" />
           </div>
         </div>
       </div>
@@ -249,7 +249,7 @@
   </div>
 
   <script>
-    const DEFAULT_PRESETS = [{"group": "Realme", "name": "Realme 1 (CPH1859 / CPH1861)", "bodyL": 156.5, "bodyW": 75.2, "bodyT": 7.8, "bodyR": 8.5, "screenL": 137.0, "screenW": 68.5, "screenR": 2.0, "offsetX": 0.0, "offsetY": 1.2}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy S25", "bodyL": 146.9, "bodyW": 70.5, "bodyT": 7.2, "bodyR": 9.5, "screenL": 141.5, "screenW": 65.5, "screenR": 7.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy M34 5G", "bodyL": 161.7, "bodyW": 77.2, "bodyT": 8.8, "bodyR": 10.0, "screenL": 149.0, "screenW": 68.8, "screenR": 6.0, "offsetX": 0.0, "offsetY": 1.5}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy S24 Ultra", "bodyL": 162.3, "bodyW": 79.0, "bodyT": 8.6, "bodyR": 2.0, "screenL": 157.0, "screenW": 73.5, "screenR": 1.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy S23 / S24", "bodyL": 147.0, "bodyW": 70.6, "bodyT": 7.6, "bodyR": 9.5, "screenL": 141.2, "screenW": 65.4, "screenR": 7.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy A55 5G", "bodyL": 161.1, "bodyW": 77.4, "bodyT": 8.2, "bodyR": 10.5, "screenL": 151.5, "screenW": 69.8, "screenR": 7.5, "offsetX": 0.0, "offsetY": 0.5}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy A15 / A25", "bodyL": 160.1, "bodyW": 76.8, "bodyT": 8.4, "bodyR": 10.0, "screenL": 149.5, "screenW": 69.0, "screenR": 7.0, "offsetX": 0.0, "offsetY": 1.2}, {"group": "Apple iPhone", "name": "iPhone 16 / 15", "bodyL": 147.6, "bodyW": 71.6, "bodyT": 7.8, "bodyR": 11.5, "screenL": 141.4, "screenW": 65.4, "screenR": 9.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Apple iPhone", "name": "iPhone 16 Pro / 15 Pro", "bodyL": 149.6, "bodyW": 71.5, "bodyT": 8.25, "bodyR": 11.5, "screenL": 144.8, "screenW": 66.8, "screenR": 9.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Apple iPhone", "name": "iPhone 16 Pro Max / 15 Pro Max", "bodyL": 163.0, "bodyW": 77.6, "bodyT": 8.25, "bodyR": 12.0, "screenL": 158.0, "screenW": 72.8, "screenR": 10.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Apple iPhone", "name": "iPhone 14 / 13", "bodyL": 146.7, "bodyW": 71.5, "bodyT": 7.8, "bodyR": 11.5, "screenL": 140.2, "screenW": 64.8, "screenR": 9.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Apple iPhone", "name": "iPhone 13 mini / 12 mini", "bodyL": 131.5, "bodyW": 64.2, "bodyT": 7.65, "bodyR": 10.5, "screenL": 125.0, "screenW": 57.8, "screenR": 8.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Apple iPhone", "name": "iPhone SE (2020 / 2022)", "bodyL": 138.4, "bodyW": 67.3, "bodyT": 7.3, "bodyR": 10.5, "screenL": 104.0, "screenW": 58.5, "screenR": 1.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Google Pixel", "name": "Google Pixel 9 / 9 Pro", "bodyL": 152.8, "bodyW": 72.0, "bodyT": 8.5, "bodyR": 11.5, "screenL": 146.8, "screenW": 66.2, "screenR": 9.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Google Pixel", "name": "Google Pixel 8a", "bodyL": 152.1, "bodyW": 72.7, "bodyT": 8.9, "bodyR": 12.0, "screenL": 141.0, "screenW": 63.5, "screenR": 9.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Google Pixel", "name": "Google Pixel 7 / 8", "bodyL": 150.5, "bodyW": 70.8, "bodyT": 8.9, "bodyR": 11.0, "screenL": 142.8, "screenW": 64.2, "screenR": 8.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "OnePlus / Nothing / Xiaomi", "name": "OnePlus 12 / 13", "bodyL": 164.3, "bodyW": 75.8, "bodyT": 9.15, "bodyR": 11.0, "screenL": 157.8, "screenW": 70.6, "screenR": 8.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "OnePlus / Nothing / Xiaomi", "name": "OnePlus Nord CE 4", "bodyL": 162.5, "bodyW": 75.3, "bodyT": 8.4, "bodyR": 10.5, "screenL": 154.5, "screenW": 69.5, "screenR": 8.0, "offsetX": 0.0, "offsetY": 0.3}, {"group": "OnePlus / Nothing / Xiaomi", "name": "Nothing Phone (2a)", "bodyL": 161.7, "bodyW": 76.3, "bodyT": 8.6, "bodyR": 11.5, "screenL": 154.8, "screenW": 69.8, "screenR": 9.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "OnePlus / Nothing / Xiaomi", "name": "Redmi Note 13 Pro 5G", "bodyL": 161.2, "bodyW": 74.2, "bodyT": 8.0, "bodyR": 9.5, "screenL": 153.8, "screenW": 68.8, "screenR": 7.5, "offsetX": 0.0, "offsetY": 0.2}, {"group": "OnePlus / Nothing / Xiaomi", "name": "Redmi Note 10 / 11", "bodyL": 160.5, "bodyW": 74.5, "bodyT": 8.3, "bodyR": 9.5, "screenL": 148.5, "screenW": 67.0, "screenR": 6.5, "offsetX": 0.0, "offsetY": 1.0}, {"group": "Legacy Clock Donors", "name": "Redmi Note 7 / Note 8", "bodyL": 159.2, "bodyW": 75.2, "bodyT": 8.1, "bodyR": 9.5, "screenL": 145.5, "screenW": 67.2, "screenR": 5.5, "offsetX": 0.0, "offsetY": 1.5}, {"group": "Legacy Clock Donors", "name": "Samsung Galaxy M21 / M31", "bodyL": 159.0, "bodyW": 75.1, "bodyT": 8.9, "bodyR": 10.0, "screenL": 146.5, "screenW": 67.6, "screenR": 6.0, "offsetX": 0.0, "offsetY": 1.4}, {"group": "Legacy Clock Donors", "name": "Moto G5S Plus / G6", "bodyL": 153.5, "bodyW": 76.2, "bodyT": 8.0, "bodyR": 10.5, "screenL": 122.0, "screenW": 68.5, "screenR": 1.5, "offsetX": 0.0, "offsetY": 0.0}];
+    const DEFAULT_PRESETS = [{"group": "Realme", "name": "Realme 1 (CPH1859 / CPH1861)", "bodyL": 156.5, "bodyW": 75.2, "bodyT": 7.8, "bodyR": 8.5, "screenL": 137.0, "screenW": 68.5, "screenR": 2.0, "offsetX": -1.3, "offsetY": 0.0}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy S25", "bodyL": 146.9, "bodyW": 70.5, "bodyT": 7.2, "bodyR": 9.5, "screenL": 141.5, "screenW": 65.5, "screenR": 7.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy M34 5G", "bodyL": 161.7, "bodyW": 77.2, "bodyT": 8.8, "bodyR": 10.0, "screenL": 149.0, "screenW": 68.8, "screenR": 6.0, "offsetX": 0.0, "offsetY": 1.5}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy S24 Ultra", "bodyL": 162.3, "bodyW": 79.0, "bodyT": 8.6, "bodyR": 2.0, "screenL": 157.0, "screenW": 73.5, "screenR": 1.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy S23 / S24", "bodyL": 147.0, "bodyW": 70.6, "bodyT": 7.6, "bodyR": 9.5, "screenL": 141.2, "screenW": 65.4, "screenR": 7.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy A55 5G", "bodyL": 161.1, "bodyW": 77.4, "bodyT": 8.2, "bodyR": 10.5, "screenL": 151.5, "screenW": 69.8, "screenR": 7.5, "offsetX": 0.0, "offsetY": 0.5}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy A15 / A25", "bodyL": 160.1, "bodyW": 76.8, "bodyT": 8.4, "bodyR": 10.0, "screenL": 149.5, "screenW": 69.0, "screenR": 7.0, "offsetX": 0.0, "offsetY": 1.2}, {"group": "Apple iPhone", "name": "iPhone 16 / 15", "bodyL": 147.6, "bodyW": 71.6, "bodyT": 7.8, "bodyR": 11.5, "screenL": 141.4, "screenW": 65.4, "screenR": 9.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Apple iPhone", "name": "iPhone 16 Pro / 15 Pro", "bodyL": 149.6, "bodyW": 71.5, "bodyT": 8.25, "bodyR": 11.5, "screenL": 144.8, "screenW": 66.8, "screenR": 9.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Apple iPhone", "name": "iPhone 16 Pro Max / 15 Pro Max", "bodyL": 163.0, "bodyW": 77.6, "bodyT": 8.25, "bodyR": 12.0, "screenL": 158.0, "screenW": 72.8, "screenR": 10.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Apple iPhone", "name": "iPhone 14 / 13", "bodyL": 146.7, "bodyW": 71.5, "bodyT": 7.8, "bodyR": 11.5, "screenL": 140.2, "screenW": 64.8, "screenR": 9.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Apple iPhone", "name": "iPhone 13 mini / 12 mini", "bodyL": 131.5, "bodyW": 64.2, "bodyT": 7.65, "bodyR": 10.5, "screenL": 125.0, "screenW": 57.8, "screenR": 8.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Apple iPhone", "name": "iPhone SE (2020 / 2022)", "bodyL": 138.4, "bodyW": 67.3, "bodyT": 7.3, "bodyR": 10.5, "screenL": 104.0, "screenW": 58.5, "screenR": 1.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Google Pixel", "name": "Google Pixel 9 / 9 Pro", "bodyL": 152.8, "bodyW": 72.0, "bodyT": 8.5, "bodyR": 11.5, "screenL": 146.8, "screenW": 66.2, "screenR": 9.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Google Pixel", "name": "Google Pixel 8a", "bodyL": 152.1, "bodyW": 72.7, "bodyT": 8.9, "bodyR": 12.0, "screenL": 141.0, "screenW": 63.5, "screenR": 9.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Google Pixel", "name": "Google Pixel 7 / 8", "bodyL": 150.5, "bodyW": 70.8, "bodyT": 8.9, "bodyR": 11.0, "screenL": 142.8, "screenW": 64.2, "screenR": 8.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "OnePlus / Nothing / Xiaomi", "name": "OnePlus 12 / 13", "bodyL": 164.3, "bodyW": 75.8, "bodyT": 9.15, "bodyR": 11.0, "screenL": 157.8, "screenW": 70.6, "screenR": 8.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "OnePlus / Nothing / Xiaomi", "name": "OnePlus Nord CE 4", "bodyL": 162.5, "bodyW": 75.3, "bodyT": 8.4, "bodyR": 10.5, "screenL": 154.5, "screenW": 69.5, "screenR": 8.0, "offsetX": 0.0, "offsetY": 0.3}, {"group": "OnePlus / Nothing / Xiaomi", "name": "Nothing Phone (2a)", "bodyL": 161.7, "bodyW": 76.3, "bodyT": 8.6, "bodyR": 11.5, "screenL": 154.8, "screenW": 69.8, "screenR": 9.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "OnePlus / Nothing / Xiaomi", "name": "Redmi Note 13 Pro 5G", "bodyL": 161.2, "bodyW": 74.2, "bodyT": 8.0, "bodyR": 9.5, "screenL": 153.8, "screenW": 68.8, "screenR": 7.5, "offsetX": 0.0, "offsetY": 0.2}, {"group": "OnePlus / Nothing / Xiaomi", "name": "Redmi Note 10 / 11", "bodyL": 160.5, "bodyW": 74.5, "bodyT": 8.3, "bodyR": 9.5, "screenL": 148.5, "screenW": 67.0, "screenR": 6.5, "offsetX": 0.0, "offsetY": 1.0}, {"group": "Legacy Clock Donors", "name": "Redmi Note 7 / Note 8", "bodyL": 159.2, "bodyW": 75.2, "bodyT": 8.1, "bodyR": 9.5, "screenL": 145.5, "screenW": 67.2, "screenR": 5.5, "offsetX": 0.0, "offsetY": 1.5}, {"group": "Legacy Clock Donors", "name": "Samsung Galaxy M21 / M31", "bodyL": 159.0, "bodyW": 75.1, "bodyT": 8.9, "bodyR": 10.0, "screenL": 146.5, "screenW": 67.6, "screenR": 6.0, "offsetX": 0.0, "offsetY": 1.4}, {"group": "Legacy Clock Donors", "name": "Moto G5S Plus / G6", "bodyL": 153.5, "bodyW": 76.2, "bodyT": 8.0, "bodyR": 10.5, "screenL": 122.0, "screenW": 68.5, "screenR": 1.5, "offsetX": 0.0, "offsetY": 0.0}];
     let ALL_PRESETS = [...DEFAULT_PRESETS];
     let enclosureStyle = 'wall_box'; // 'wall_box' or 'echoshow'
 
@@ -974,8 +974,9 @@
         }
       });
 
-      // 4 Corner M3 Screw Bosses
-      const bossH = Math.max(2.0, p.botZ - p.bezelThick);
+      // 4 Corner M3 Screw Bosses (starts above phone pocket so phone pocket is 100% clear)
+      const phoneClearZ = p.bezelThick + p.bodyT + 2 * p.caseAllow + 0.4;
+      const bossH = Math.max(1.0, p.botZ - phoneClearZ);
       [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sy]) => {
         const bx = sx * (p.coverX / 2 - 5.5);
         const by = sy * (p.pocketY / 2 - 3.8);
@@ -985,7 +986,7 @@
         hole.absarc(bx, by, 1.42, 0, Math.PI * 2, true);
         bossShape.holes.push(hole);
         const bossGeo = new THREE.ExtrudeGeometry(bossShape, { depth: bossH, bevelEnabled: false, curveSegments: 16 });
-        bossGeo.translate(0, 0, p.bezelThick);
+        bossGeo.translate(0, 0, phoneClearZ);
         clipGeometryToRearPlane(bossGeo, p, -p.coverLipDepth);
         g.add(new THREE.Mesh(bossGeo, mat));
       });
@@ -1397,6 +1398,12 @@ module part1_main_clock_body() {
                 cube([cable_slot_w, (outer_y - pocket_y)/2 + 2.0, bot_z], center = true);
         }
 
+        // 2b. Button Relief Channels (prevent accidental pressing of keys)
+        translate([0, pocket_y/2 + 0.5, bezel_thick + (phone_thick + 2*case_allowance)/2])
+            cube([55.0, 2.0, phone_thick + 2*case_allowance + 0.5], center = true);
+        translate([-12.0, -pocket_y/2 - 0.5, bezel_thick + (phone_thick + 2*case_allowance)/2])
+            cube([35.0, 2.0, phone_thick + 2*case_allowance + 0.5], center = true);
+
         if (speaker_slots) {
             for (sx = [-pocket_x*0.28, pocket_x*0.28]) {
                 translate([sx, -outer_y/2 + (outer_y - pocket_y)/4, slot_z_start + bot_z/2])
@@ -1405,15 +1412,18 @@ module part1_main_clock_body() {
         }
     }
 
+    phone_clear_z = bezel_thick + phone_thick + 2*case_allowance + 0.4;
     intersection() {
         union() {
             for (sx = [-1, 1], sy = [-1, 1]) {
                 bx = sx * (cover_x/2 - 5.5);
                 by = sy * (pocket_y/2 - 3.8);
-                translate([bx, by, bezel_thick]) {
+                translate([bx, by, phone_clear_z])
+                    cylinder(h = 1.5, d1 = 4.5, d2 = 7.5);
+                translate([bx, by, phone_clear_z + 1.5]) {
                     difference() {
-                        cylinder(h = bot_z, d = 7.5);
-                        translate([0, 0, 1.0]) cylinder(h = bot_z, d = 2.85);
+                        cylinder(h = bot_z - phone_clear_z, d = 7.5);
+                        translate([0, 0, 0.5]) cylinder(h = bot_z, d = 2.85);
                     }
                 }
             }
