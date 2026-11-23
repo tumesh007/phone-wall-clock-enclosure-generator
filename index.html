@@ -5,8 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Parametric 3D Phone Wall & Echo Show 5 Clock Enclosure Studio</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Primary CDN with Fallback for Older macOS / Legacy Browsers -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script>
+    if (typeof THREE === 'undefined') {
+      document.write('<script src="https://unpkg.com/three@0.128.0/build/three.min.js"><\/script>');
+    }
+  </script>
   <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <script>
+    if (typeof THREE !== 'undefined' && typeof THREE.OrbitControls === 'undefined') {
+      document.write('<script src="https://unpkg.com/three@0.128.0/examples/js/controls/OrbitControls.js"><\/script>');
+    }
+  </script>
   <style>
     body { background: #0f172a; color: #f8fafc; font-family: system-ui, -apple-system, sans-serif; }
     ::-webkit-scrollbar { width: 6px; height: 6px; }
@@ -195,25 +206,42 @@
 
     <!-- Right 3D Viewport -->
     <main class="flex-1 relative bg-slate-950 flex flex-col min-h-[350px] overflow-hidden">
-      <!-- Viewport Mode Overlay -->
-      <div class="absolute top-3 left-3 z-10 flex flex-wrap items-center gap-2 bg-slate-900/90 backdrop-blur border border-slate-700/80 p-1.5 rounded-lg">
-        <button id="viewDesk" class="px-3 py-1 rounded text-xs font-semibold bg-sky-600 text-white cursor-pointer">
-          Desk / Wall Preview
-        </button>
-        <button id="viewBed" class="px-3 py-1 rounded text-xs font-semibold text-slate-300 hover:bg-slate-800 cursor-pointer">
-          2-Part Print Bed (180×180 mm)
-        </button>
-        <label class="flex items-center gap-1.5 px-2 text-xs text-slate-300 cursor-pointer select-none">
-          <input id="showPhone" type="checkbox" checked class="accent-sky-500" />
-          Phone Ghost
-        </label>
+      <!-- Viewport Header Toolbar (Responsive flex row to prevent overlap) -->
+      <div class="absolute top-3 left-3 right-3 z-10 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+        <div class="flex flex-wrap items-center gap-1.5 bg-slate-900/90 backdrop-blur border border-slate-700/80 p-1.5 rounded-lg text-xs pointer-events-auto shadow">
+          <span class="text-slate-400 font-semibold px-1 text-[11px]">View:</span>
+          <button id="viewFront" class="px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white cursor-pointer transition">
+            Front (Screen)
+          </button>
+          <button id="viewIso" class="px-2.5 py-1 rounded text-xs font-semibold bg-sky-600 text-white cursor-pointer transition">
+            3D Isometric
+          </button>
+          <button id="viewRear" class="px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white cursor-pointer transition">
+            Rear (Hex Mesh)
+          </button>
+          <button id="viewBed" class="px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white cursor-pointer transition">
+            Print Bed (180×180)
+          </button>
+          <button id="viewReset" title="Reset Camera" class="px-2 py-1 rounded text-xs text-slate-400 hover:text-white hover:bg-slate-800 cursor-pointer transition">
+            ↺ Reset
+          </button>
+          <label class="flex items-center gap-1.5 px-2 text-xs text-slate-300 cursor-pointer select-none border-l border-slate-700/80 ml-1">
+            <input id="showPhone" type="checkbox" checked class="accent-sky-500" />
+            Phone Ghost
+          </label>
+        </div>
+
+        <!-- Graphics Mode Badge -->
+        <div id="renderModeBadge" class="px-2.5 py-1.5 rounded-md text-[11px] font-mono font-medium bg-slate-900/90 border border-slate-700 text-slate-300 shadow pointer-events-auto">
+          Checking graphics...
+        </div>
       </div>
 
       <!-- Dimensions Readout -->
       <div id="dimOverlay" class="absolute bottom-3 left-3 z-10 bg-slate-900/90 backdrop-blur border border-slate-700/80 px-3 py-2 rounded-lg text-xs text-slate-300 space-y-0.5">
         <div>Part 1 Footprint: <span id="outDims" class="font-mono text-sky-300">--</span></div>
         <div>Part 2 Hex Back Cover: <span id="covDims" class="font-mono text-indigo-300">--</span></div>
-        <div id="modeNote" class="text-[11px] text-emerald-300">Echo Show 5 Wedge: Prints face-down with zero supports; stands at 18° tilt on desk.</div>
+        <div id="modeNote" class="text-[11px] text-emerald-300">--</div>
       </div>
 
       <div id="canvasContainer" class="absolute inset-0 w-full h-full overflow-hidden"></div>
@@ -223,7 +251,7 @@
   <script>
     const DEFAULT_PRESETS = [{"group": "Realme", "name": "Realme 1 (CPH1859 / CPH1861)", "bodyL": 156.5, "bodyW": 75.2, "bodyT": 7.8, "bodyR": 8.5, "screenL": 137.0, "screenW": 68.5, "screenR": 2.0, "offsetX": 0.0, "offsetY": 1.2}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy S25", "bodyL": 146.9, "bodyW": 70.5, "bodyT": 7.2, "bodyR": 9.5, "screenL": 141.5, "screenW": 65.5, "screenR": 7.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy M34 5G", "bodyL": 161.7, "bodyW": 77.2, "bodyT": 8.8, "bodyR": 10.0, "screenL": 149.0, "screenW": 68.8, "screenR": 6.0, "offsetX": 0.0, "offsetY": 1.5}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy S24 Ultra", "bodyL": 162.3, "bodyW": 79.0, "bodyT": 8.6, "bodyR": 2.0, "screenL": 157.0, "screenW": 73.5, "screenR": 1.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy S23 / S24", "bodyL": 147.0, "bodyW": 70.6, "bodyT": 7.6, "bodyR": 9.5, "screenL": 141.2, "screenW": 65.4, "screenR": 7.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy A55 5G", "bodyL": 161.1, "bodyW": 77.4, "bodyT": 8.2, "bodyR": 10.5, "screenL": 151.5, "screenW": 69.8, "screenR": 7.5, "offsetX": 0.0, "offsetY": 0.5}, {"group": "Samsung Galaxy", "name": "Samsung Galaxy A15 / A25", "bodyL": 160.1, "bodyW": 76.8, "bodyT": 8.4, "bodyR": 10.0, "screenL": 149.5, "screenW": 69.0, "screenR": 7.0, "offsetX": 0.0, "offsetY": 1.2}, {"group": "Apple iPhone", "name": "iPhone 16 / 15", "bodyL": 147.6, "bodyW": 71.6, "bodyT": 7.8, "bodyR": 11.5, "screenL": 141.4, "screenW": 65.4, "screenR": 9.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Apple iPhone", "name": "iPhone 16 Pro / 15 Pro", "bodyL": 149.6, "bodyW": 71.5, "bodyT": 8.25, "bodyR": 11.5, "screenL": 144.8, "screenW": 66.8, "screenR": 9.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Apple iPhone", "name": "iPhone 16 Pro Max / 15 Pro Max", "bodyL": 163.0, "bodyW": 77.6, "bodyT": 8.25, "bodyR": 12.0, "screenL": 158.0, "screenW": 72.8, "screenR": 10.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Apple iPhone", "name": "iPhone 14 / 13", "bodyL": 146.7, "bodyW": 71.5, "bodyT": 7.8, "bodyR": 11.5, "screenL": 140.2, "screenW": 64.8, "screenR": 9.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Apple iPhone", "name": "iPhone 13 mini / 12 mini", "bodyL": 131.5, "bodyW": 64.2, "bodyT": 7.65, "bodyR": 10.5, "screenL": 125.0, "screenW": 57.8, "screenR": 8.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Apple iPhone", "name": "iPhone SE (2020 / 2022)", "bodyL": 138.4, "bodyW": 67.3, "bodyT": 7.3, "bodyR": 10.5, "screenL": 104.0, "screenW": 58.5, "screenR": 1.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Google Pixel", "name": "Google Pixel 9 / 9 Pro", "bodyL": 152.8, "bodyW": 72.0, "bodyT": 8.5, "bodyR": 11.5, "screenL": 146.8, "screenW": 66.2, "screenR": 9.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Google Pixel", "name": "Google Pixel 8a", "bodyL": 152.1, "bodyW": 72.7, "bodyT": 8.9, "bodyR": 12.0, "screenL": 141.0, "screenW": 63.5, "screenR": 9.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "Google Pixel", "name": "Google Pixel 7 / 8", "bodyL": 150.5, "bodyW": 70.8, "bodyT": 8.9, "bodyR": 11.0, "screenL": 142.8, "screenW": 64.2, "screenR": 8.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "OnePlus / Nothing / Xiaomi", "name": "OnePlus 12 / 13", "bodyL": 164.3, "bodyW": 75.8, "bodyT": 9.15, "bodyR": 11.0, "screenL": 157.8, "screenW": 70.6, "screenR": 8.5, "offsetX": 0.0, "offsetY": 0.0}, {"group": "OnePlus / Nothing / Xiaomi", "name": "OnePlus Nord CE 4", "bodyL": 162.5, "bodyW": 75.3, "bodyT": 8.4, "bodyR": 10.5, "screenL": 154.5, "screenW": 69.5, "screenR": 8.0, "offsetX": 0.0, "offsetY": 0.3}, {"group": "OnePlus / Nothing / Xiaomi", "name": "Nothing Phone (2a)", "bodyL": 161.7, "bodyW": 76.3, "bodyT": 8.6, "bodyR": 11.5, "screenL": 154.8, "screenW": 69.8, "screenR": 9.0, "offsetX": 0.0, "offsetY": 0.0}, {"group": "OnePlus / Nothing / Xiaomi", "name": "Redmi Note 13 Pro 5G", "bodyL": 161.2, "bodyW": 74.2, "bodyT": 8.0, "bodyR": 9.5, "screenL": 153.8, "screenW": 68.8, "screenR": 7.5, "offsetX": 0.0, "offsetY": 0.2}, {"group": "OnePlus / Nothing / Xiaomi", "name": "Redmi Note 10 / 11", "bodyL": 160.5, "bodyW": 74.5, "bodyT": 8.3, "bodyR": 9.5, "screenL": 148.5, "screenW": 67.0, "screenR": 6.5, "offsetX": 0.0, "offsetY": 1.0}, {"group": "Legacy Clock Donors", "name": "Redmi Note 7 / Note 8", "bodyL": 159.2, "bodyW": 75.2, "bodyT": 8.1, "bodyR": 9.5, "screenL": 145.5, "screenW": 67.2, "screenR": 5.5, "offsetX": 0.0, "offsetY": 1.5}, {"group": "Legacy Clock Donors", "name": "Samsung Galaxy M21 / M31", "bodyL": 159.0, "bodyW": 75.1, "bodyT": 8.9, "bodyR": 10.0, "screenL": 146.5, "screenW": 67.6, "screenR": 6.0, "offsetX": 0.0, "offsetY": 1.4}, {"group": "Legacy Clock Donors", "name": "Moto G5S Plus / G6", "bodyL": 153.5, "bodyW": 76.2, "bodyT": 8.0, "bodyR": 10.5, "screenL": 122.0, "screenW": 68.5, "screenR": 1.5, "offsetX": 0.0, "offsetY": 0.0}];
     let ALL_PRESETS = [...DEFAULT_PRESETS];
-    let enclosureStyle = 'wall_box';
+    let enclosureStyle = 'wall_box'; // 'wall_box' or 'echoshow'
 
     fetch('./presets.json').then(r => r.ok ? r.json() : null).then(data => {
       if (Array.isArray(data) && data.length) {
@@ -277,12 +305,10 @@
     presetSelect.addEventListener('change', e => applyPreset(Number(e.target.value)));
 
     // Enclosure Form Factor Toggle ('wall_box' vs 'echoshow')
-
     const styleWallBtn = document.getElementById('styleWall');
     const styleEchoBtn = document.getElementById('styleEcho');
     const styleDesc = document.getElementById('styleDesc');
     const echoControls = document.getElementById('echoControls');
-
 
     function updateButtonLabels() {
       if (enclosureStyle === 'echoshow') {
@@ -295,42 +321,52 @@
         document.getElementById('btnScad').textContent = 'Download v1 (.SCAD)';
       }
     }
-    styleWallBtn.addEventListener('click', () => {
-      enclosureStyle = 'wall_box';
-      styleWallBtn.className = 'py-1.5 px-2 rounded text-xs font-semibold bg-sky-600 text-white cursor-pointer transition';
-      styleEchoBtn.className = 'py-1.5 px-2 rounded text-xs font-semibold text-slate-300 hover:bg-slate-800 cursor-pointer transition';
-      styleDesc.textContent = 'v1: Slim flush profile, weighted bottom foot, dual rear keyhole slots, and 3M Command strip pads.';
-      echoControls.className = 'grid grid-cols-2 gap-2 pt-1 opacity-40 pointer-events-none transition-opacity';
-      document.getElementById('btnStl1').textContent = 'Download Part 1 (v1 Box .STL)';
-      document.getElementById('btnStl2').textContent = 'Download Part 2 (v1 Cover .STL)';
-      document.getElementById('btnScad').textContent = 'Download v1 (.SCAD)';
-      updateButtonLabels();
-      rebuildScene();
-    });
 
-    styleEchoBtn.addEventListener('click', () => {
-      enclosureStyle = 'echoshow';
-      styleEchoBtn.className = 'py-1.5 px-2 rounded text-xs font-semibold bg-sky-600 text-white cursor-pointer transition';
-      styleWallBtn.className = 'py-1.5 px-2 rounded text-xs font-semibold text-slate-300 hover:bg-slate-800 cursor-pointer transition';
-      styleDesc.textContent = 'v2: 18° angled desk stand, tapered acoustic rear housing, and deep anti-tip base.';
-      echoControls.className = 'grid grid-cols-2 gap-2 pt-1 opacity-100 pointer-events-auto transition-opacity';
-      document.getElementById('btnStl1').textContent = 'Download Part 1 (v2 Wedge .STL)';
-      document.getElementById('btnStl2').textContent = 'Download Part 2 (v2 Cover .STL)';
+    function setEnclosureStyle(style, triggerRebuild = true) {
+      if (style === 'echoshow' || style === 'v2') {
+        enclosureStyle = 'echoshow';
+        styleEchoBtn.className = 'py-1.5 px-2 rounded text-xs font-semibold bg-sky-600 text-white cursor-pointer transition';
+        styleWallBtn.className = 'py-1.5 px-2 rounded text-xs font-semibold text-slate-300 hover:bg-slate-800 cursor-pointer transition';
+        styleDesc.textContent = 'v2: 18° angled desk stand, tapered acoustic rear housing, and deep anti-tip base.';
+        echoControls.className = 'grid grid-cols-2 gap-2 pt-1 opacity-100 pointer-events-auto transition-opacity';
+      } else {
+        enclosureStyle = 'wall_box';
+        styleWallBtn.className = 'py-1.5 px-2 rounded text-xs font-semibold bg-sky-600 text-white cursor-pointer transition';
+        styleEchoBtn.className = 'py-1.5 px-2 rounded text-xs font-semibold text-slate-300 hover:bg-slate-800 cursor-pointer transition';
+        styleDesc.textContent = 'v1: Slim flush profile, weighted bottom foot, dual rear keyhole slots, and 3M Command strip pads.';
+        echoControls.className = 'grid grid-cols-2 gap-2 pt-1 opacity-40 pointer-events-none transition-opacity';
+      }
       updateButtonLabels();
-      rebuildScene();
-    });
+      if (triggerRebuild && typeof rebuildScene === 'function') rebuildScene();
+    }
 
-    // Three.js & Fallback Viewport Setup
+    styleWallBtn.addEventListener('click', () => setEnclosureStyle('wall_box'));
+    styleEchoBtn.addEventListener('click', () => setEnclosureStyle('echoshow'));
+
+    const initStyleParam = new URLSearchParams(window.location.search).get('style');
+    if (initStyleParam) {
+      setEnclosureStyle(initStyleParam, false);
+    }
+
+    // ---------------------------------------------------------------------------
+    // Multi-Tier WebGL Probe & Fallback System
+    // ---------------------------------------------------------------------------
     const container = document.getElementById('canvasContainer');
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x090d16);
-
+    let scene = null;
     let camera = null;
     let renderer = null;
     let controls = null;
     let webglAvailable = false;
+
+    // Software 3D Canvas Fallback State
     let fallbackCanvas = null;
     let fallbackCtx = null;
+    let softYaw = 0.55;
+    let softPitch = 0.32;
+    let softZoom = 1.0;
+    let isDragging = false;
+    let dragStartX = 0, dragStartY = 0;
+    let dragStartYaw = 0, dragStartPitch = 0;
 
     function getContainerDims() {
       const w = container.clientWidth || (window.innerWidth > 1024 ? window.innerWidth - 384 : window.innerWidth);
@@ -338,221 +374,163 @@
       return { w: Math.max(200, w), h: Math.max(200, h) };
     }
 
-    const initialDims = getContainerDims();
+    function initWebGL() {
+      if (typeof THREE === 'undefined') return false;
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('webgl') === '0' || urlParams.get('software') === '1') {
+        console.info('Software 3D canvas forced via query parameter.');
+        return false;
+      }
 
-    try {
-      camera = new THREE.PerspectiveCamera(40, initialDims.w / initialDims.h, 0.5, 2000);
-      camera.position.set(145, -185, 135);
-      camera.up.set(0, 0, 1);
+      const dims = getContainerDims();
+      const canvas = document.createElement('canvas');
+      canvas.width = dims.w;
+      canvas.height = dims.h;
 
-      renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'default' });
-      renderer.setSize(initialDims.w, initialDims.h);
-      renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-      container.innerHTML = '';
-      container.appendChild(renderer.domElement);
+      // Progressive Probe: 4 Levels of Context Tolerances
+      const contextProbes = [
+        () => canvas.getContext('webgl2', { antialias: true, alpha: true, powerPreference: 'default' }),
+        () => canvas.getContext('webgl', { antialias: true, alpha: true, failIfMajorPerformanceCaveat: false }),
+        () => canvas.getContext('webgl', { antialias: false, alpha: true, powerPreference: 'low-power', failIfMajorPerformanceCaveat: false }),
+        () => canvas.getContext('experimental-webgl', { antialias: false, alpha: true, powerPreference: 'low-power', failIfMajorPerformanceCaveat: false })
+      ];
 
-      controls = new THREE.OrbitControls(camera, renderer.domElement);
-      controls.enableDamping = true;
-      controls.target.set(0, 0, 35);
+      let gl = null;
+      for (const probe of contextProbes) {
+        try {
+          gl = probe();
+          if (gl) break;
+        } catch (e) {}
+      }
 
-      scene.add(new THREE.AmbientLight(0xffffff, 0.65));
-      const dir1 = new THREE.DirectionalLight(0xffffff, 0.85);
-      dir1.position.set(130, -160, 220);
-      scene.add(dir1);
-      const dir2 = new THREE.DirectionalLight(0x38bdf8, 0.4);
-      dir2.position.set(-140, 140, 100);
-      scene.add(dir2);
+      try {
+        if (gl) {
+          renderer = new THREE.WebGLRenderer({ canvas: canvas, context: gl, antialias: false, alpha: true });
+        } else {
+          renderer = new THREE.WebGLRenderer({ antialias: false, powerPreference: 'low-power', failIfMajorPerformanceCaveat: false });
+        }
 
-      webglAvailable = true;
-    } catch (err) {
-      console.warn('WebGL context creation failed; 2D canvas preview mode active:', err);
-      webglAvailable = false;
+        renderer.setSize(dims.w, dims.h);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+        container.innerHTML = '';
+        container.appendChild(renderer.domElement);
+
+        scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x090d16);
+
+        camera = new THREE.PerspectiveCamera(40, dims.w / dims.h, 0.5, 2000);
+        // Default: Looking at the FRONT face of the clock
+        camera.position.set(125, 185, 120);
+        camera.up.set(0, 0, 1);
+
+        if (typeof THREE.OrbitControls !== 'undefined') {
+          controls = new THREE.OrbitControls(camera, renderer.domElement);
+          controls.enableDamping = true;
+          controls.dampingFactor = 0.05;
+          controls.target.set(0, 0, 40);
+        }
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.65));
+        // Key light positioned at positive Y to illuminate front faceplate
+        const dir1 = new THREE.DirectionalLight(0xffffff, 0.95);
+        dir1.position.set(120, 190, 220);
+        scene.add(dir1);
+
+        const dir2 = new THREE.DirectionalLight(0x38bdf8, 0.45);
+        dir2.position.set(-140, -140, 100);
+        scene.add(dir2);
+
+        document.getElementById('renderModeBadge').innerHTML =
+          '<span class="text-emerald-400 font-semibold flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>⚡ WebGL Hardware 3D</span>';
+        return true;
+      } catch (err) {
+        console.warn('WebGL initialization failed, switching to 3D Software Canvas:', err);
+        return false;
+      }
+    }
+
+    function initSoftwareCanvas() {
       container.innerHTML = '';
       fallbackCanvas = document.createElement('canvas');
       fallbackCanvas.style.width = '100%';
       fallbackCanvas.style.height = '100%';
       fallbackCanvas.style.display = 'block';
+      fallbackCanvas.style.cursor = 'grab';
       container.appendChild(fallbackCanvas);
       fallbackCtx = fallbackCanvas.getContext('2d');
-    }
 
-    function draw2DPreview(p) {
-      if (!fallbackCanvas || !fallbackCtx) return;
-      const dims = getContainerDims();
-      const dpr = Math.min(window.devicePixelRatio || 1, 2);
-      if (fallbackCanvas.width !== dims.w * dpr || fallbackCanvas.height !== dims.h * dpr) {
-        fallbackCanvas.width = dims.w * dpr;
-        fallbackCanvas.height = dims.h * dpr;
-      }
-      const ctx = fallbackCtx;
-      ctx.save();
-      ctx.scale(dpr, dpr);
-      ctx.clearRect(0, 0, dims.w, dims.h);
+      // Interactive Mouse Orbit Controls
+      fallbackCanvas.addEventListener('mousedown', (e) => {
+        isDragging = true;
+        fallbackCanvas.style.cursor = 'grabbing';
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        dragStartYaw = softYaw;
+        dragStartPitch = softPitch;
+      });
 
-      ctx.fillStyle = '#090d16';
-      ctx.fillRect(0, 0, dims.w, dims.h);
+      window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        const dx = e.clientX - dragStartX;
+        const dy = e.clientY - dragStartY;
+        softYaw = dragStartYaw - dx * 0.01;
+        softPitch = Math.max(-Math.PI / 2 + 0.05, Math.min(Math.PI / 2 - 0.05, dragStartPitch + dy * 0.01));
+      });
 
-      const cx = dims.w / 2;
-      const cy = dims.h / 2;
-      const scale = Math.min((dims.w - 80) / 200, (dims.h - 80) / 200);
+      window.addEventListener('mouseup', () => {
+        isDragging = false;
+        if (fallbackCanvas) fallbackCanvas.style.cursor = 'grab';
+      });
 
-      const bedPx = 180 * scale;
-      const bx = cx - bedPx / 2;
-      const by = cy - bedPx / 2;
+      fallbackCanvas.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        const factor = e.deltaY > 0 ? 0.9 : 1.1;
+        softZoom = Math.max(0.35, Math.min(3.5, softZoom * factor));
+      }, { passive: false });
 
-      ctx.fillStyle = '#1e293b';
-      ctx.fillRect(bx, by, bedPx, bedPx);
-
-      ctx.strokeStyle = '#334155';
-      ctx.lineWidth = 1;
-      for (let i = 0; i <= 180; i += 20) {
-        const gx = bx + i * scale;
-        const gy = by + i * scale;
-        ctx.beginPath(); ctx.moveTo(gx, by); ctx.lineTo(gx, by + bedPx); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(bx, gy); ctx.lineTo(bx + bedPx, gy); ctx.stroke();
-      }
-
-      ctx.strokeStyle = '#0284c7';
-      ctx.lineWidth = 2;
-      ctx.strokeRect(bx, by, bedPx, bedPx);
-
-      ctx.fillStyle = '#38bdf8';
-      ctx.font = '11px monospace';
-      ctx.textAlign = 'center';
-      ctx.fillText('Bambu Lab A1 mini Build Plate (180 × 180 mm)', cx, by - 8);
-
-      function drawRoundR(rx, ry, rw, rh, r, fill, stroke, strokeC, fillC) {
-        ctx.beginPath();
-        const rad = Math.min(r, rw / 2, rh / 2);
-        ctx.moveTo(rx + rad, ry);
-        ctx.arcTo(rx + rw, ry, rx + rw, ry + rh, rad);
-        ctx.arcTo(rx + rw, ry + rh, rx, ry + rh, rad);
-        ctx.arcTo(rx, ry + rh, rx, ry, rad);
-        ctx.arcTo(rx, ry, rx + rw, ry, rad);
-        ctx.closePath();
-        if (fill) { ctx.fillStyle = fillC; ctx.fill(); }
-        if (stroke) { ctx.strokeStyle = strokeC; ctx.lineWidth = 1.5; ctx.stroke(); }
-      }
-
-      if (viewMode === 'desk') {
-        const ox = p.outerX * scale;
-        const oy = p.outerY * scale;
-        const x0 = cx - ox / 2;
-        const y0 = cy - oy / 2;
-
-        drawRoundR(x0, y0, ox, oy, p.outerR * scale, true, true, '#38bdf8', '#1e293b');
-
-        const px = p.pocketX * scale;
-        const py = p.pocketY * scale;
-        ctx.save();
-        ctx.setLineDash([4, 4]);
-        drawRoundR(cx - px / 2, cy - py / 2, px, py, p.pocketR * scale, false, true, '#94a3b8');
-        ctx.restore();
-
-        const sx = p.screenL * scale;
-        const sy = p.screenW * scale;
-        const scx = cx + p.offsetX * scale;
-        const scy = cy + p.offsetY * scale;
-        drawRoundR(scx - sx / 2, scy - sy / 2, sx, sy, p.screenR * scale, true, true, '#f59e0b', '#020617');
-
-        ctx.fillStyle = '#94a3b8';
-        const bRad = 3.2 * scale;
-        [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([signX, signY]) => {
-          const bX = cx + signX * (p.coverX / 2 - 5.5) * scale;
-          const bY = cy + signY * (p.pocketY / 2 - 3.8) * scale;
-          ctx.beginPath();
-          ctx.arc(bX, bY, bRad, 0, Math.PI * 2);
-          ctx.fill();
-        });
-
-        ctx.fillStyle = '#f97316';
-        if (p.cableSide === 'right') {
-          ctx.fillRect(x0 + ox - 4, cy - (p.cableW * scale) / 2, 4, p.cableW * scale);
-        } else if (p.cableSide === 'left') {
-          ctx.fillRect(x0, cy - (p.cableW * scale) / 2, 4, p.cableW * scale);
-        } else {
-          ctx.fillRect(cx - (p.cableW * scale) / 2, y0 + oy - 4, p.cableW * scale, 4);
+      // Touch Orbit Controls (Older Mac Trackpads & iPads)
+      let touchDist = 0;
+      fallbackCanvas.addEventListener('touchstart', (e) => {
+        if (e.touches.length === 1) {
+          isDragging = true;
+          dragStartX = e.touches[0].clientX;
+          dragStartY = e.touches[0].clientY;
+          dragStartYaw = softYaw;
+          dragStartPitch = softPitch;
+        } else if (e.touches.length === 2) {
+          touchDist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
         }
+      }, { passive: true });
 
-        ctx.fillStyle = '#f8fafc';
-        ctx.font = '11px sans-serif';
-        ctx.textAlign = 'center';
-        ctx.fillText('Part 1: ' + p.outerX.toFixed(1) + ' × ' + p.outerY.toFixed(1) + ' mm', cx, y0 - 10);
-        ctx.fillStyle = '#f59e0b';
-        ctx.fillText('Screen Aperture: ' + p.screenL.toFixed(1) + ' × ' + p.screenW.toFixed(1) + ' mm', cx, scy + 4);
+      window.addEventListener('touchmove', (e) => {
+        if (e.touches.length === 1 && isDragging) {
+          const dx = e.touches[0].clientX - dragStartX;
+          const dy = e.touches[0].clientY - dragStartY;
+          softYaw = dragStartYaw - dx * 0.01;
+          softPitch = Math.max(-Math.PI / 2 + 0.05, Math.min(Math.PI / 2 - 0.05, dragStartPitch + dy * 0.01));
+        } else if (e.touches.length === 2) {
+          const dist = Math.hypot(e.touches[0].clientX - e.touches[1].clientX, e.touches[0].clientY - e.touches[1].clientY);
+          if (touchDist > 0) {
+            softZoom = Math.max(0.35, Math.min(3.5, softZoom * (dist / touchDist)));
+          }
+          touchDist = dist;
+        }
+      }, { passive: true });
 
-      } else {
-        const ox = p.outerX * scale;
-        const oy = p.outerY * scale;
-        const p1y = cy + oy / 2 + 5 * scale;
-        drawRoundR(cx - ox / 2, p1y - oy, ox, oy, p.outerR * scale, true, true, '#38bdf8', '#334155');
+      window.addEventListener('touchend', () => { isDragging = false; });
 
-        const cxw = p.coverX * scale;
-        const cyw = p.coverY * scale;
-        const p2y = cy - 5 * scale;
-        drawRoundR(cx - cxw / 2, p2y - cyw, cxw, cyw, p.coverR * scale, true, true, '#818cf8', '#1e1b4b');
-
-        ctx.fillStyle = '#a5b4fc';
-        ctx.font = '10px monospace';
-        ctx.textAlign = 'center';
-        ctx.fillText('⬡ ⬡ Part 2 Hex Back Cover ⬡ ⬡', cx, p2y - cyw / 2);
-
-        ctx.fillStyle = '#38bdf8';
-        ctx.fillText('Part 1 Face-Down on Bed', cx, p1y - oy / 2);
-      }
-
-      ctx.fillStyle = '#38bdf8';
-      ctx.font = '10px sans-serif';
-      ctx.textAlign = 'left';
-      ctx.fillText('Interactive Viewport Active • Direct STL Binary Export Fully Enabled', 12, dims.h - 12);
-
-      ctx.restore();
+      document.getElementById('renderModeBadge').innerHTML =
+        '<span class="text-amber-300 font-semibold flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-amber-400"></span>🖥️ 3D Software Canvas (Legacy macOS Mode)</span>';
     }
 
-    // 180 x 180 mm Bambu Lab A1 mini Build Plate Overlay
-    const bedGroup = new THREE.Group();
-    const bedPlane = new THREE.Mesh(
-      new THREE.PlaneGeometry(180, 180),
-      new THREE.MeshBasicMaterial({ color: 0x1e293b, side: THREE.DoubleSide, transparent: true, opacity: 0.45 })
-    );
-    bedPlane.position.z = -0.15;
-    bedGroup.add(bedPlane);
+    webglAvailable = initWebGL();
+    if (!webglAvailable) {
+      initSoftwareCanvas();
+    }
 
-    const gridHelper = new THREE.GridHelper(180, 18, 0x38bdf8, 0x334155);
-    gridHelper.rotation.x = Math.PI / 2;
-    gridHelper.position.z = -0.1;
-    bedGroup.add(gridHelper);
-
-    const borderPts = [
-      new THREE.Vector3(-90, -90, 0), new THREE.Vector3(90, -90, 0),
-      new THREE.Vector3(90, 90, 0), new THREE.Vector3(-90, 90, 0),
-      new THREE.Vector3(-90, -90, 0)
-    ];
-    const bedBorder = new THREE.Line(
-      new THREE.BufferGeometry().setFromPoints(borderPts),
-      new THREE.LineBasicMaterial({ color: 0x38bdf8 })
-    );
-    bedGroup.add(bedBorder);
-    scene.add(bedGroup);
-
-    let viewMode = 'desk'; // 'desk' | 'bed'
-    document.getElementById('viewDesk').addEventListener('click', () => {
-      viewMode = 'desk';
-      document.getElementById('viewDesk').className = 'px-3 py-1 rounded text-xs font-semibold bg-sky-600 text-white cursor-pointer';
-      document.getElementById('viewBed').className = 'px-3 py-1 rounded text-xs font-semibold text-slate-300 hover:bg-slate-800 cursor-pointer';
-      if (camera) camera.position.set(145, -185, 135);
-      if (controls) controls.target.set(0, 0, 35);
-      rebuildScene();
-    });
-    document.getElementById('viewBed').addEventListener('click', () => {
-      viewMode = 'bed';
-      document.getElementById('viewBed').className = 'px-3 py-1 rounded text-xs font-semibold bg-sky-600 text-white cursor-pointer';
-      document.getElementById('viewDesk').className = 'px-3 py-1 rounded text-xs font-semibold text-slate-300 hover:bg-slate-800 cursor-pointer';
-      if (camera) camera.position.set(0, -175, 220);
-      if (controls) controls.target.set(0, 0, 10);
-      rebuildScene();
-    });
-
+    // ---------------------------------------------------------------------------
+    // Parameter Extraction
+    // ---------------------------------------------------------------------------
     function getParams() {
       const num = id => parseFloat(document.getElementById(id).value) || 0;
       const bodyL = num('bodyL'), bodyW = num('bodyW'), bodyT = num('bodyT'), bodyR = num('bodyR');
@@ -608,6 +586,241 @@
       };
     }
 
+    // ---------------------------------------------------------------------------
+    // 3D Software Canvas Projection Engine (100% Zero-WebGL Fallback)
+    // ---------------------------------------------------------------------------
+    function project3D(x, y, z, cx, cy, baseScale) {
+      const cosY = Math.cos(softYaw), sinY = Math.sin(softYaw);
+      const cosP = Math.cos(softPitch), sinP = Math.sin(softPitch);
+
+      // Rotate yaw around world Z (Up)
+      const x1 = x * cosY - y * sinY;
+      const y1 = x * sinY + y * cosY;
+
+      // Rotate pitch around world X
+      const x2 = x1;
+      const y2 = y1 * cosP - z * sinP;
+      const z2 = y1 * sinP + z * cosP;
+
+      const fov = 550;
+      const s = (fov / (fov + y2)) * baseScale * softZoom;
+      return {
+        px: cx + x2 * s,
+        py: cy - z2 * s,
+        depth: y2
+      };
+    }
+
+    function render3DSoftware(p) {
+      if (!fallbackCanvas || !fallbackCtx) return;
+      const dims = getContainerDims();
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      if (fallbackCanvas.width !== dims.w * dpr || fallbackCanvas.height !== dims.h * dpr) {
+        fallbackCanvas.width = dims.w * dpr;
+        fallbackCanvas.height = dims.h * dpr;
+      }
+      const ctx = fallbackCtx;
+      ctx.save();
+      ctx.scale(dpr, dpr);
+      ctx.clearRect(0, 0, dims.w, dims.h);
+
+      ctx.fillStyle = '#090d16';
+      ctx.fillRect(0, 0, dims.w, dims.h);
+
+      const cx = dims.w / 2;
+      const cy = dims.h / 2 + 15;
+      const baseScale = Math.min((dims.w - 100) / 220, (dims.h - 100) / 220);
+
+      function draw3DLine(p1, p2, color, width = 1) {
+        const a = project3D(p1[0], p1[1], p1[2], cx, cy, baseScale);
+        const b = project3D(p2[0], p2[1], p2[2], cx, cy, baseScale);
+        ctx.beginPath();
+        ctx.moveTo(a.px, a.py);
+        ctx.lineTo(b.px, b.py);
+        ctx.strokeStyle = color;
+        ctx.lineWidth = width;
+        ctx.stroke();
+      }
+
+      function draw3DPoly(pts, fill, stroke, fillC, strokeC, width = 1) {
+        const proj = pts.map(pt => project3D(pt[0], pt[1], pt[2], cx, cy, baseScale));
+        ctx.beginPath();
+        ctx.moveTo(proj[0].px, proj[0].py);
+        for (let i = 1; i < proj.length; i++) ctx.lineTo(proj[i].px, proj[i].py);
+        ctx.closePath();
+        if (fill) { ctx.fillStyle = fillC; ctx.fill(); }
+        if (stroke) { ctx.strokeStyle = strokeC; ctx.lineWidth = width; ctx.stroke(); }
+      }
+
+      // 1. 3D Bambu Lab A1 mini Build Plate Grid (180x180 mm)
+      const bedMin = -90, bedMax = 90;
+      for (let g = bedMin; g <= bedMax; g += 20) {
+        draw3DLine([g, bedMin, 0], [g, bedMax, 0], '#1e293b', 1);
+        draw3DLine([bedMin, g, 0], [bedMax, g, 0], '#1e293b', 1);
+      }
+      draw3DPoly([
+        [bedMin, bedMin, 0], [bedMax, bedMin, 0],
+        [bedMax, bedMax, 0], [bedMin, bedMax, 0]
+      ], false, true, '', '#0284c7', 2);
+
+      // 2. 3D Clock Model Coordinates Transformation
+      const hw = p.outerX / 2;
+      const hh = p.outerY / 2;
+
+      function toWorldDesk(lx, ly, lz) {
+        if (p.enclosureStyle === 'echoshow') {
+          const rad = p.tiltActualRad;
+          // Local Y goes from -hh (bottom) to +hh (top).
+          // Local Z goes from 0 (front) to wedge depth (back).
+          const yFromFoot = ly + hh;
+          const wz = yFromFoot * Math.cos(rad) - lz * Math.sin(rad);
+          const wy = - (yFromFoot * Math.sin(rad) + lz * Math.cos(rad));
+          return [lx, wy, Math.max(0, wz)];
+        } else {
+          // Wall Box upright on desk at Z=0
+          const wz = ly + hh;
+          const wy = -lz;
+          return [lx, wy, wz];
+        }
+      }
+
+      function toWorldBedPart1(lx, ly, lz) {
+        // Face down on plate (Z=0)
+        return [lx, ly - hh - 6, lz];
+      }
+      function toWorldBedPart2(lx, ly, lz) {
+        // Flat on plate (Z=0)
+        return [lx, ly + (p.coverY/2) + 6, lz];
+      }
+
+      const toWorld = viewMode === 'desk' ? toWorldDesk : toWorldBedPart1;
+
+      if (viewMode === 'desk') {
+        // --- DESK PREVIEW ---
+        const topD = p.topZ;
+        const botD = p.botZ;
+
+        // Front Faceplate
+        const fPts = [
+          toWorld(-hw, -hh, 0), toWorld(hw, -hh, 0),
+          toWorld(hw, hh, 0), toWorld(-hw, hh, 0)
+        ];
+        draw3DPoly(fPts, true, true, '#1e293b', '#38bdf8', 2);
+
+        // Active Screen Cutout
+        const sw = p.screenL / 2, sh = p.screenW / 2;
+        const sPts = [
+          toWorld(-sw + p.offsetX, -sh + p.offsetY, 0.4),
+          toWorld( sw + p.offsetX, -sh + p.offsetY, 0.4),
+          toWorld( sw + p.offsetX,  sh + p.offsetY, 0.4),
+          toWorld(-sw + p.offsetX,  sh + p.offsetY, 0.4)
+        ];
+        draw3DPoly(sPts, true, true, '#020617', '#f59e0b', 2);
+
+        // Screen Clock Time Indicator
+        const sCenter = project3D(p.offsetX, toWorld(p.offsetX, p.offsetY, 0.4)[1], toWorld(p.offsetX, p.offsetY, 0.4)[2], cx, cy, baseScale);
+        ctx.fillStyle = '#f59e0b';
+        ctx.font = 'bold 12px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText('12:00', sCenter.px, sCenter.py + 4);
+
+        // Left Side Profile (Tapered Wedge in Echo Show mode)
+        const leftSide = [
+          toWorld(-hw, -hh, 0), toWorld(-hw, -hh, botD),
+          toWorld(-hw,  hh, topD), toWorld(-hw,  hh, 0)
+        ];
+        draw3DPoly(leftSide, true, true, '#0f172a', '#0284c7', 1.5);
+
+        // Right Side Profile
+        const rightSide = [
+          toWorld(hw, -hh, 0), toWorld(hw, -hh, botD),
+          toWorld(hw,  hh, topD), toWorld(hw,  hh, 0)
+        ];
+        draw3DPoly(rightSide, true, true, '#334155', '#0284c7', 1.5);
+
+        // Top Wall
+        const topWall = [
+          toWorld(-hw, hh, 0), toWorld(hw, hh, 0),
+          toWorld(hw, hh, topD), toWorld(-hw, hh, topD)
+        ];
+        draw3DPoly(topWall, true, true, '#475569', '#38bdf8', 1.5);
+
+        // Bottom Table Foot
+        const botFoot = [
+          toWorld(-hw, -hh, 0), toWorld(hw, -hh, 0),
+          toWorld(hw, -hh, botD), toWorld(-hw, -hh, botD)
+        ];
+        draw3DPoly(botFoot, true, true, '#0f172a', '#38bdf8', 1.5);
+
+        // Rear Hex Cover
+        const chw = p.coverX / 2, chh = p.coverY / 2;
+        const rearCover = [
+          toWorld(-chw, -chh, botD - 2.6), toWorld(chw, -chh, botD - 2.6),
+          toWorld(chw,  chh, topD - 2.6), toWorld(-chw,  chh, topD - 2.6)
+        ];
+        draw3DPoly(rearCover, true, true, '#1e1b4b', '#818cf8', 1.5);
+
+        // Hexagonal mesh grid indications on rear cover
+        for (let hx = -chw + 16; hx <= chw - 16; hx += 18) {
+          for (let hy = -chh + 12; hy <= chh - 12; hy += 16) {
+            const zH = p.enclosureStyle === 'echoshow' ? (p.midZ - hy * Math.tan(p.tiltActualRad) - 2.4) : (topD - 2.4);
+            const pt = toWorld(hx, hy, zH);
+            const pr = project3D(pt[0], pt[1], pt[2], cx, cy, baseScale);
+            ctx.beginPath();
+            ctx.arc(pr.px, pr.py, 3 * baseScale * softZoom * 0.15, 0, Math.PI * 2);
+            ctx.fillStyle = '#818cf8';
+            ctx.fill();
+          }
+        }
+
+        // Phone Ghost inside cavity
+        if (document.getElementById('showPhone').checked) {
+          const gw = p.bodyL / 2, gh = p.bodyW / 2;
+          const ghostPts = [
+            toWorld(-gw, -gh, p.bezelThick + p.bodyT / 2),
+            toWorld( gw, -gh, p.bezelThick + p.bodyT / 2),
+            toWorld( gw,  gh, p.bezelThick + p.bodyT / 2),
+            toWorld(-gw,  gh, p.bezelThick + p.bodyT / 2)
+          ];
+          draw3DPoly(ghostPts, true, true, 'rgba(245, 158, 11, 0.25)', '#f59e0b', 1);
+        }
+
+      } else {
+        // --- 2-PART PRINT BED LAYOUT ---
+        // Part 1 face down
+        const p1Face = [
+          toWorldBedPart1(-hw, -hh, 0), toWorldBedPart1(hw, -hh, 0),
+          toWorldBedPart1(hw, hh, 0), toWorldBedPart1(-hw, hh, 0)
+        ];
+        draw3DPoly(p1Face, true, true, '#1e293b', '#38bdf8', 2);
+
+        const p1Top = [
+          toWorldBedPart1(-hw, -hh, p.botZ), toWorldBedPart1(hw, -hh, p.botZ),
+          toWorldBedPart1(hw, hh, p.topZ), toWorldBedPart1(-hw, hh, p.topZ)
+        ];
+        draw3DPoly(p1Top, true, true, '#334155', '#38bdf8', 1.5);
+
+        // Part 2 flat
+        const chw = p.coverX / 2, chh = p.coverY / 2;
+        const p2Face = [
+          toWorldBedPart2(-chw, -chh, 0), toWorldBedPart2(chw, -chh, 0),
+          toWorldBedPart2(chw, chh, 0), toWorldBedPart2(-chw, chh, 0)
+        ];
+        draw3DPoly(p2Face, true, true, '#1e1b4b', '#818cf8', 2);
+
+        const p2Top = [
+          toWorldBedPart2(-chw, -chh, p.coverThick), toWorldBedPart2(chw, -chh, p.coverThick),
+          toWorldBedPart2(chw, chh, p.coverThick), toWorldBedPart2(-chw, chh, p.coverThick)
+        ];
+        draw3DPoly(p2Top, true, true, '#312e81', '#a5b4fc', 1.5);
+      }
+
+      ctx.restore();
+    }
+
+    // ---------------------------------------------------------------------------
+    // Three.js Scene Building (WebGL Mode)
+    // ---------------------------------------------------------------------------
     function makeRoundedRectShape(w, h, r, cx = 0, cy = 0) {
       const s = new THREE.Shape();
       const rc = Math.min(r, w / 2 - 0.01, h / 2 - 0.01);
@@ -640,7 +853,6 @@
       return p;
     }
 
-    // Clip every vertex of a geometry above the rear cover plane so Echo Show 5 taper is exact & clean
     function clipGeometryToRearPlane(geo, p, zOffset = 0) {
       const pos = geo.attributes.position;
       const tanA = Math.tan(p.tiltActualRad);
@@ -654,11 +866,41 @@
       return geo;
     }
 
-    let assemblyRoot = new THREE.Group();
-    let part1Group = new THREE.Group();
-    let part2Group = new THREE.Group();
+    let bedGroup = null;
+    let assemblyRoot = null;
+    let part1Group = null;
+    let part2Group = null;
     let phoneGhost = null;
-    scene.add(assemblyRoot);
+
+    if (webglAvailable) {
+      bedGroup = new THREE.Group();
+      const bedPlane = new THREE.Mesh(
+        new THREE.PlaneGeometry(180, 180),
+        new THREE.MeshBasicMaterial({ color: 0x1e293b, side: THREE.DoubleSide, transparent: true, opacity: 0.45 })
+      );
+      bedPlane.position.z = -0.15;
+      bedGroup.add(bedPlane);
+
+      const gridHelper = new THREE.GridHelper(180, 18, 0x38bdf8, 0x334155);
+      gridHelper.rotation.x = Math.PI / 2;
+      gridHelper.position.z = -0.1;
+      bedGroup.add(gridHelper);
+
+      const borderPts = [
+        new THREE.Vector3(-90, -90, 0), new THREE.Vector3(90, -90, 0),
+        new THREE.Vector3(90, 90, 0), new THREE.Vector3(-90, 90, 0),
+        new THREE.Vector3(-90, -90, 0)
+      ];
+      const bedBorder = new THREE.Line(
+        new THREE.BufferGeometry().setFromPoints(borderPts),
+        new THREE.LineBasicMaterial({ color: 0x38bdf8 })
+      );
+      bedGroup.add(bedBorder);
+      scene.add(bedGroup);
+
+      assemblyRoot = new THREE.Group();
+      scene.add(assemblyRoot);
+    }
 
     function buildPart1(p) {
       const g = new THREE.Group();
@@ -695,7 +937,7 @@
       // Top wall bar
       addClippedBox(p.outerX, topWallThick, maxUpperH, 0, p.pocketY / 2 + topWallThick / 2, upperStartZ + maxUpperH / 2);
 
-      // Bottom wall segments (with rear-open speaker slots + optional bottom cable slot)
+      // Bottom wall segments (with speaker slots + optional cable slot)
       const botY = -p.pocketY / 2 - topWallThick / 2;
       const speakerX1 = -p.pocketX * 0.28, speakerX2 = p.pocketX * 0.28, spkW = 12.0;
       const cuts = [
@@ -718,7 +960,7 @@
         addClippedBox(segW, topWallThick, maxUpperH, curX + segW / 2, botY, upperStartZ + maxUpperH / 2);
       }
 
-      // Left & Right side walls (with rear-open cable slot on selected side)
+      // Left & Right side walls
       ['left', 'right'].forEach(side => {
         const sx = side === 'right' ? (p.pocketX / 2 + sideWallThick / 2) : (-p.pocketX / 2 - sideWallThick / 2);
         if (p.cableSide === side) {
@@ -732,7 +974,7 @@
         }
       });
 
-      // 4 Corner M3 Screw Bosses clipped cleanly below the rear cover seat
+      // 4 Corner M3 Screw Bosses
       const bossH = Math.max(2.0, p.botZ - p.bezelThick);
       [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sy]) => {
         const bx = sx * (p.coverX / 2 - 5.5);
@@ -757,7 +999,7 @@
 
       const coverShape = makeRoundedRectShape(p.coverX, p.coverY, p.coverR);
 
-      // 4 Corner M3 Holes
+      // 4 Corner M3 Holes (Clockwise Winding for Watertight Geometry)
       [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([sx, sy]) => {
         const bx = sx * (p.coverX / 2 - 5.5);
         const by = sy * ((p.pocketY / 2 - 3.8) / Math.cos(p.tiltActualRad));
@@ -766,7 +1008,7 @@
         coverShape.holes.push(h);
       });
 
-      // 2 Keyhole Wall-Mount Slots in Wall Box mode
+      // Keyhole Slots in Wall Box Mode (Clockwise Winding)
       const keyholePositions = p.enclosureStyle === 'wall_box'
         ? [[-p.coverX * 0.26, p.coverY * 0.14], [p.coverX * 0.26, p.coverY * 0.14]]
         : [];
@@ -780,7 +1022,7 @@
         coverShape.holes.push(kh);
       });
 
-      // Hexagonal Honeycomb Ventilation Holes
+      // Hexagonal Honeycomb Ventilation Holes (Clockwise Winding)
       const strut = 2.2;
       const pitchX = (p.hexSize + strut) * 0.866025;
       const pitchY = p.hexSize + strut;
@@ -802,7 +1044,8 @@
 
           const hexHole = new THREE.Path();
           for (let k = 0; k < 6; k++) {
-            const ang = (Math.PI / 3) * k + Math.PI / 6;
+            // Negative angle for clockwise winding (preserves normal orientation)
+            const ang = -((Math.PI / 3) * k) + Math.PI / 6;
             const vx = hx + hexRadius * Math.cos(ang);
             const vy = hy + hexRadius * Math.sin(ang);
             if (k === 0) hexHole.moveTo(vx, vy);
@@ -818,59 +1061,59 @@
       return g;
     }
 
+    let viewMode = 'desk'; // 'desk' | 'bed'
+
     function rebuildScene() {
       const p = getParams();
 
-      scene.remove(assemblyRoot);
-      assemblyRoot = new THREE.Group();
-      part1Group = buildPart1(p);
-      part2Group = buildPart2(p);
-
-      if (viewMode === 'desk') {
-        bedGroup.visible = false;
-
-        part1Group.position.set(0, 0, 0);
-        // Seat Part 2 flush onto the rear face (tilted in Echo Show mode!)
-        part2Group.position.set(0, 0, p.midZ - p.coverLipDepth + 0.3);
-        part2Group.rotation.set(-p.tiltActualRad, 0, 0);
-
-        assemblyRoot.add(part1Group);
-        assemblyRoot.add(part2Group);
-
-        if (document.getElementById('showPhone').checked) {
-          const phoneGeo = new THREE.BoxGeometry(p.bodyL, p.bodyW, p.bodyT);
-          const phoneMat = new THREE.MeshStandardMaterial({
-            color: 0xf59e0b, transparent: true, opacity: 0.38, roughness: 0.2
-          });
-          phoneGhost = new THREE.Mesh(phoneGeo, phoneMat);
-          phoneGhost.position.set(0, 0, p.bezelThick + p.caseAllow + p.bodyT / 2);
-          assemblyRoot.add(phoneGhost);
-        }
-
-        // Rotate upright onto the tabletop (Z=0 is desk surface)
-        if (p.enclosureStyle === 'echoshow') {
-          assemblyRoot.rotation.x = Math.PI / 2 - p.tiltActualRad;
-          assemblyRoot.position.z = (p.outerY / 2) * Math.sin(p.tiltActualRad);
-        } else {
-          assemblyRoot.rotation.x = Math.PI / 2;
-          assemblyRoot.position.z = p.outerY / 2;
-        }
-      } else {
-        // 2-Part Print Bed Layout (Part 1 face-down + Part 2 flat on Z=0)
-        bedGroup.visible = true;
-        part1Group.position.set(0, -p.outerY / 2 - 4, 0);
-        part2Group.position.set(0, p.coverY / 2 + 4, 0);
-        assemblyRoot.add(part1Group);
-        assemblyRoot.add(part2Group);
-      }
-
       if (webglAvailable) {
+        scene.remove(assemblyRoot);
+        assemblyRoot = new THREE.Group();
+        part1Group = buildPart1(p);
+        part2Group = buildPart2(p);
+
+        if (viewMode === 'desk') {
+          bedGroup.visible = false;
+          part1Group.position.set(0, 0, 0);
+          part2Group.position.set(0, 0, p.midZ - p.coverLipDepth + 0.3);
+          part2Group.rotation.set(-p.tiltActualRad, 0, 0);
+
+          assemblyRoot.add(part1Group);
+          assemblyRoot.add(part2Group);
+
+          if (document.getElementById('showPhone').checked) {
+            const phoneGeo = new THREE.BoxGeometry(p.bodyL, p.bodyW, p.bodyT);
+            const phoneMat = new THREE.MeshStandardMaterial({
+              color: 0xf59e0b, transparent: true, opacity: 0.38, roughness: 0.2
+            });
+            phoneGhost = new THREE.Mesh(phoneGeo, phoneMat);
+            phoneGhost.position.set(0, 0, p.bezelThick + p.caseAllow + p.bodyT / 2);
+            assemblyRoot.add(phoneGhost);
+          }
+
+          // Orient upright on the desk table surface
+          if (p.enclosureStyle === 'echoshow') {
+            assemblyRoot.rotation.x = Math.PI / 2 - p.tiltActualRad;
+            assemblyRoot.position.z = (p.outerY / 2) * Math.sin(p.tiltActualRad);
+          } else {
+            assemblyRoot.rotation.x = Math.PI / 2;
+            assemblyRoot.position.z = p.outerY / 2;
+          }
+        } else {
+          // 2-Part Print Bed Layout (Flat on Z=0)
+          bedGroup.visible = true;
+          part1Group.position.set(0, -p.outerY / 2 - 4, 0);
+          part2Group.position.set(0, p.coverY / 2 + 4, 0);
+          assemblyRoot.add(part1Group);
+          assemblyRoot.add(part2Group);
+        }
+
         scene.add(assemblyRoot);
       } else {
-        draw2DPreview(p);
+        render3DSoftware(p);
       }
 
-      // Readouts & Bambu A1 mini (180x180 mm) Check
+      // Readouts & Bambu A1 mini Check
       const zText = p.enclosureStyle === 'echoshow'
         ? `${p.botZ.toFixed(1)}→${p.topZ.toFixed(1)} mm wedge`
         : `${p.topZ.toFixed(1)} mm`;
@@ -895,7 +1138,86 @@
       }
     }
 
-    // Export Part 1 or Part 2 in its exact flat print-bed orientation (Z=0 on plate)
+    // ---------------------------------------------------------------------------
+    // Viewport Toolbar Camera Angle Controls
+    // ---------------------------------------------------------------------------
+    function setActiveViewBtn(activeId) {
+      ['viewFront', 'viewIso', 'viewRear', 'viewBed'].forEach(id => {
+        const btn = document.getElementById(id);
+        if (id === activeId) {
+          btn.className = 'px-2.5 py-1 rounded text-xs font-semibold bg-sky-600 text-white cursor-pointer transition';
+        } else {
+          btn.className = 'px-2.5 py-1 rounded text-xs font-semibold text-slate-300 hover:bg-slate-800 hover:text-white cursor-pointer transition';
+        }
+      });
+    }
+
+    document.getElementById('viewFront').addEventListener('click', () => {
+      viewMode = 'desk';
+      setActiveViewBtn('viewFront');
+      if (camera && controls) {
+        camera.position.set(0, 220, 45);
+        controls.target.set(0, 0, 45);
+      }
+      softYaw = 0.0;
+      softPitch = 0.12;
+      rebuildScene();
+    });
+
+    document.getElementById('viewIso').addEventListener('click', () => {
+      viewMode = 'desk';
+      setActiveViewBtn('viewIso');
+      if (camera && controls) {
+        camera.position.set(125, 185, 120);
+        controls.target.set(0, 0, 40);
+      }
+      softYaw = 0.55;
+      softPitch = 0.32;
+      rebuildScene();
+    });
+
+    document.getElementById('viewRear').addEventListener('click', () => {
+      viewMode = 'desk';
+      setActiveViewBtn('viewRear');
+      if (camera && controls) {
+        camera.position.set(0, -220, 45);
+        controls.target.set(0, 0, 45);
+      }
+      softYaw = Math.PI;
+      softPitch = 0.20;
+      rebuildScene();
+    });
+
+    document.getElementById('viewBed').addEventListener('click', () => {
+      viewMode = 'bed';
+      setActiveViewBtn('viewBed');
+      if (camera && controls) {
+        camera.position.set(0, -180, 200);
+        controls.target.set(0, 0, 10);
+      }
+      softYaw = 0.0;
+      softPitch = 1.15;
+      rebuildScene();
+    });
+
+    document.getElementById('viewReset').addEventListener('click', () => {
+      viewMode = 'desk';
+      setActiveViewBtn('viewIso');
+      if (camera && controls) {
+        camera.position.set(125, 185, 120);
+        controls.target.set(0, 0, 40);
+      }
+      softYaw = 0.55;
+      softPitch = 0.32;
+      softZoom = 1.0;
+      rebuildScene();
+    });
+
+    document.getElementById('showPhone').addEventListener('change', rebuildScene);
+
+    // ---------------------------------------------------------------------------
+    // Binary STL & SCAD Export
+    // ---------------------------------------------------------------------------
     function exportPrintOrientationSTL(buildFn, filename) {
       const p = getParams();
       const tempGroup = buildFn(p);
@@ -951,9 +1273,13 @@
     }
 
     function generateCustomSCAD(p) {
-      return `// Generated by Parametric 3D Phone Wall & Echo Show 5 Clock Enclosure Studio
+      return `// ============================================================================
+// Parametric 2-Part Phone Wall & Echo Show 5 Tabletop Clock Enclosure
+// Generated by Web Studio (https://tumesh007.github.io/phone-wall-clock-enclosure-generator/)
+// ============================================================================
+
 enclosure_style = "${p.enclosureStyle}"; // "wall_box" (v1) or "echoshow" (v2)
-part_to_render  = "both";
+part_to_render  = "both";     // "part1", "part2", "both", "assembled"
 
 phone_length   = ${p.bodyL};
 phone_width    = ${p.bodyW};
@@ -1178,7 +1504,7 @@ else {
     });
 
     document.querySelectorAll('input, select').forEach(el => {
-      if (el.id !== 'presetSearch' && el.id !== 'presetSelect') {
+      if (el.id !== 'presetSearch' && el.id !== 'presetSelect' && el.id !== 'showPhone') {
         el.addEventListener('input', rebuildScene);
         el.addEventListener('change', rebuildScene);
       }
@@ -1191,7 +1517,7 @@ else {
         camera.updateProjectionMatrix();
         renderer.setSize(dims.w, dims.h);
       } else if (!webglAvailable) {
-        draw2DPreview(getParams());
+        render3DSoftware(getParams());
       }
     });
 
@@ -1200,11 +1526,14 @@ else {
     presetSelect.value = 0;
     rebuildScene();
 
+    // Smooth Animation Loop for both WebGL and Software 3D
     function animate() {
       requestAnimationFrame(animate);
       if (webglAvailable && renderer && camera) {
         if (controls) controls.update();
         renderer.render(scene, camera);
+      } else if (!webglAvailable) {
+        render3DSoftware(getParams());
       }
     }
     animate();
