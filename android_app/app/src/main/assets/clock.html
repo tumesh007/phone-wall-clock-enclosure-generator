@@ -1,0 +1,1604 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-black">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="description" content="Always-on smart desk & wall clock with live weather, timers, stopwatch, and alarms for repurposed smartphones." />
+  <link rel="manifest" href="./clock-manifest.json" />
+  <title>Smart Clock OS - Always-On Landscape Display</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            theme: 'var(--theme-color)',
+            themeGlow: 'var(--theme-glow)'
+          },
+          fontFamily: {
+            mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular', 'Menlo', 'Monaco', 'Consolas', 'monospace'],
+            sans: ['Inter', 'system-ui', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'sans-serif']
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --theme-color: #f59e0b; /* Default Amber Gold */
+      --theme-glow: rgba(245, 158, 11, 0.25);
+      --dim-opacity: 1.0;
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    html, body {
+      height: 100%;
+      width: 100%;
+      margin: 0;
+      padding: 0;
+      background-color: #000000 !important;
+      color: #f8fafc;
+      overflow: hidden;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    }
+
+    /* Offline Core CSS Utility Rules */
+    .hidden { display: none !important; }
+    .flex { display: flex; }
+    .inline-flex { display: inline-flex; }
+    .flex-col { flex-direction: column; }
+    .flex-row { flex-direction: row; }
+    .items-center { align-items: center; }
+    .items-start { align-items: flex-start; }
+    .items-baseline { align-items: baseline; }
+    .justify-between { justify-content: space-between; }
+    .justify-center { justify-content: center; }
+    .flex-1 { flex: 1 1 0%; }
+    .w-full { width: 100%; }
+    .h-full { height: 100%; }
+    .relative { position: relative; }
+    .fixed { position: fixed; }
+    .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+    .z-40 { z-index: 40; }
+    .z-50 { z-index: 50; }
+    .gap-1 { gap: 0.25rem; }
+    .gap-1\.5 { gap: 0.375rem; }
+    .gap-2 { gap: 0.5rem; }
+    .gap-3 { gap: 0.75rem; }
+    .gap-4 { gap: 1rem; }
+    .gap-6 { gap: 1.5rem; }
+    .gap-8 { gap: 2rem; }
+    .p-2 { padding: 0.5rem; }
+    .p-3 { padding: 0.75rem; }
+    .p-4 { padding: 1rem; }
+    .p-6 { padding: 1.5rem; }
+    .p-8 { padding: 2rem; }
+    .px-2\.5 { padding-left: 0.625rem; padding-right: 0.625rem; }
+    .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+    .px-4 { padding-left: 1rem; padding-right: 1rem; }
+    .px-8 { padding-left: 2rem; padding-right: 2rem; }
+    .px-10 { padding-left: 2.5rem; padding-right: 2.5rem; }
+    .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+    .py-1\.5 { padding-top: 0.375rem; padding-bottom: 0.375rem; }
+    .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+    .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+    .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+    .rounded-md { border-radius: 0.375rem; }
+    .rounded-lg { border-radius: 0.5rem; }
+    .rounded-xl { border-radius: 0.75rem; }
+    .rounded-2xl { border-radius: 1rem; }
+    .rounded-3xl { border-radius: 1.5rem; }
+    .rounded-full { border-radius: 9999px; }
+    .border { border: 1px solid #27272a; }
+    .border-b { border-bottom: 1px solid #27272a; }
+    .border-t { border-top: 1px solid #27272a; }
+    .bg-black { background-color: #000000 !important; }
+    .bg-zinc-900 { background-color: #18181b; }
+    .bg-zinc-950 { background-color: #09090b; }
+    .text-white { color: #ffffff !important; }
+    .text-zinc-100 { color: #f4f4f5; }
+    .text-zinc-200 { color: #e4e4e7; }
+    .text-zinc-300 { color: #d4d4d8; }
+    .text-zinc-400 { color: #a1a1aa; }
+    .text-zinc-500 { color: #71717a; }
+    .text-zinc-600 { color: #52525b; }
+    .text-amber-400 { color: #fbbf24; }
+    .text-emerald-500 { color: #10b981; }
+    .font-bold { font-weight: 700; }
+    .font-extrabold { font-weight: 800; }
+    .font-black { font-weight: 900; }
+    .font-semibold { font-weight: 600; }
+    .font-medium { font-weight: 500; }
+    .font-light { font-weight: 300; }
+    .tracking-tight { letter-spacing: -0.025em; }
+    .tracking-wide { letter-spacing: 0.025em; }
+    .tracking-wider { letter-spacing: 0.05em; }
+    .tracking-widest { letter-spacing: 0.1em; }
+    .uppercase { text-transform: uppercase; }
+    .capitalize { text-transform: capitalize; }
+    .cursor-pointer { cursor: pointer; }
+    .transition { transition: all 0.2s ease; }
+    .grid { display: grid; }
+    .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .max-w-md { max-width: 28rem; }
+    .max-w-lg { max-width: 32rem; }
+    button { font-family: inherit; }
+
+
+    .font-num {
+      font-family: 'JetBrains Mono', ui-monospace, monospace;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .glow-text {
+      text-shadow: 0 0 25px var(--theme-glow);
+    }
+
+    /* Burn-in protection wrapper transform */
+    #burnInWrapper {
+      transition: transform 1.2s ease-in-out;
+      will-change: transform;
+    }
+
+    /* Modal transition */
+    .fade-enter {
+      opacity: 0;
+      transform: scale(0.96);
+    }
+    .fade-enter-active {
+      opacity: 1;
+      transform: scale(1);
+      transition: opacity 0.2s ease-out, transform 0.2s ease-out;
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #000000;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #27272a;
+      border-radius: 2px;
+    }
+
+    /* Night Dimmer Filter */
+    .dimmed {
+      opacity: var(--dim-opacity);
+      filter: brightness(var(--dim-opacity));
+      transition: opacity 0.3s ease, filter 0.3s ease;
+    }
+
+    /* =========================================================================
+       Fullscreen Time Mode & Auto-Hiding HUD Styles
+       ========================================================================= */
+    .hud-element {
+      transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s ease;
+      will-change: opacity, transform;
+    }
+
+    body.hud-hidden header.hud-element {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transform: translateY(-14px);
+    }
+
+    body.hud-hidden footer.hud-element {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transform: translateY(14px);
+    }
+
+    /* Mode: Fullscreen Time (Dominant Giant Clock) */
+    body.mode-fullscreen main {
+      width: 100%;
+      height: 100%;
+      justify-content: center;
+      align-items: center;
+      margin: auto 0;
+    }
+
+    body.mode-fullscreen #clockZone {
+      width: 100% !important;
+      max-width: 100% !important;
+      align-items: center !important;
+      justify-content: center !important;
+      text-align: center !important;
+      padding: 0 !important;
+      margin: auto !important;
+      cursor: pointer;
+    }
+
+    body.mode-fullscreen #timeRow {
+      justify-content: center !important;
+      align-items: baseline !important;
+      width: 100%;
+    }
+
+    body.mode-fullscreen #clockTime {
+      /* Massive edge-to-edge digits calibrated to fill screen cleanly */
+      font-size: clamp(6.5rem, 28vw, 58vh) !important;
+      line-height: 0.9 !important;
+      letter-spacing: -0.04em !important;
+    }
+
+    body.mode-fullscreen #clockAmPm {
+      font-size: clamp(1.2rem, 3.2vw, 5.5vh) !important;
+    }
+
+    body.mode-fullscreen #clockSeconds {
+      font-size: clamp(1.8rem, 4.8vw, 8.2vh) !important;
+    }
+
+    body.mode-fullscreen #clockSubLine {
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
+    }
+
+    body.mode-fullscreen #subWeatherPill {
+      display: inline-flex !important;
+    }
+
+    body.mode-fullscreen #sideZone {
+      display: none !important;
+    }
+
+    /* Mode: Split Dashboard (Clock + Right Drawer) */
+    body.mode-dashboard main {
+      justify-content: space-between;
+    }
+
+    body.mode-dashboard #clockZone {
+      align-items: flex-start;
+      justify-content: center;
+      padding-left: 0.75rem;
+      cursor: default;
+    }
+
+    body.mode-dashboard #timeRow {
+      justify-content: flex-start;
+      align-items: baseline;
+    }
+
+    body.mode-dashboard #clockTime {
+      font-size: clamp(4.5rem, 13vw, 10.5rem);
+      line-height: 1;
+    }
+
+    body.mode-dashboard #subWeatherPill {
+      display: none !important;
+    }
+
+    body.mode-dashboard #sideZone {
+      display: flex !important;
+    }
+  </style>
+</head>
+<body class="bg-black text-slate-100 flex flex-col justify-between p-4 md:p-6 lg:p-8 select-none relative dimmed mode-fullscreen">
+
+  <!-- Anti-Burn-In Canvas Shift Wrapper -->
+  <div id="burnInWrapper" class="w-full h-full flex flex-col justify-between">
+
+    <!-- Top Status Bar (Subtle & Minimal, Auto-hides in fullscreen) -->
+    <header class="hud-element flex items-center justify-between text-xs tracking-wider text-zinc-500 font-mono">
+      <div class="flex items-center gap-3">
+        <span id="wakeLockStatus" class="flex items-center gap-1.5 text-emerald-500 transition-colors" title="Screen Wake Lock Active">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+          <span class="text-[11px] font-medium hidden sm:inline">AWAKE</span>
+        </span>
+        <span id="locationBadge" class="hidden sm:inline-flex items-center gap-1 text-zinc-400">
+          📍 <span id="locCityName">Locating...</span>
+        </span>
+      </div>
+
+      <div class="flex items-center gap-1.5 sm:gap-2">
+        <!-- Next Alarm Pill (if active) -->
+        <span id="nextAlarmBadge" class="hidden items-center gap-1.5 px-2 py-0.5 rounded-full bg-zinc-900 border border-zinc-800 text-amber-400 text-[11px]">
+          ⏰ <span id="nextAlarmTime">07:00 AM</span>
+        </span>
+
+        <!-- Battery Status (if supported) -->
+        <span id="batteryBadge" class="hidden items-center gap-1 text-zinc-400">
+          🔋 <span id="batteryPercent">--%</span>
+        </span>
+
+        <!-- Layout Mode Switcher (Fullscreen vs Dashboard) -->
+        <button id="btnToggleLayout" title="Switch between Fullscreen Time and Split Dashboard" class="px-2.5 py-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white transition flex items-center gap-1.5 text-xs font-semibold cursor-pointer">
+          <span id="layoutModeIcon">🗂️</span>
+          <span id="layoutModeLabel" class="hidden md:inline">Dashboard</span>
+        </button>
+
+        <!-- Quick Header Utilities -->
+        <button id="btnHeaderTimer" title="Countdown Timer" class="p-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white transition cursor-pointer">
+          ⏳
+        </button>
+        <button id="btnHeaderStopwatch" title="Stopwatch" class="p-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white transition cursor-pointer">
+          ⏱️
+        </button>
+        <button id="btnHeaderAlarm" title="Alarms" class="p-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white transition cursor-pointer">
+          ⏰
+        </button>
+        <button id="btnDimmer" title="Toggle Night Dimmer" class="p-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white transition cursor-pointer">
+          🌙
+        </button>
+        <button id="btnFullscreen" title="Toggle Browser Fullscreen (F11 / Double-tap)" class="p-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white transition cursor-pointer">
+          ⛶
+        </button>
+        <button id="btnSettings" title="Settings" class="p-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white transition cursor-pointer">
+          ⚙️
+        </button>
+      </div>
+    </header>
+
+    <!-- Main Landscape View Area -->
+    <main class="flex-1 flex flex-row items-center justify-between gap-4 md:gap-8 my-auto">
+
+      <!-- LEFT: Clock & Date Zone (Expands to 100% Fullscreen in Fullscreen Mode) -->
+      <section id="clockZone" class="flex-1 flex flex-col justify-center items-start pl-2 md:pl-4 transition-all duration-300">
+        <!-- Time Row -->
+        <div id="timeRow" class="flex items-baseline gap-2 md:gap-4 font-num font-bold tracking-tight glow-text" style="color: var(--theme-color);">
+          <span id="clockTime" class="text-7xl sm:text-8xl md:text-9xl lg:text-[10.5rem] leading-none transition-all duration-300">12:00</span>
+          <div id="clockAuxStack" class="flex flex-col items-start gap-1 pb-2 sm:pb-3 md:pb-5">
+            <span id="clockAmPm" class="text-xl sm:text-2xl md:text-3xl font-semibold uppercase tracking-widest text-zinc-400">AM</span>
+            <span id="clockSeconds" class="text-2xl sm:text-3xl md:text-4xl font-light text-zinc-500">00</span>
+          </div>
+        </div>
+
+        <!-- Date & Compact Weather Sub-line -->
+        <div id="clockSubLine" class="mt-3 md:mt-5 flex flex-wrap items-center gap-2 md:gap-3 text-zinc-400 text-base sm:text-lg md:text-2xl font-medium tracking-wide transition-all duration-300">
+          <span id="clockWeekday" class="font-semibold text-zinc-200">Monday</span>
+          <span class="text-zinc-600">•</span>
+          <span id="clockDate">November 23, 2026</span>
+          <button id="subWeatherPill" title="View Weather Details / Switch to Dashboard" class="hidden items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-800 text-xs sm:text-sm md:text-base text-zinc-300 transition cursor-pointer">
+            <span id="subWeatherIcon">☀️</span>
+            <span id="subWeatherTemp">--°C</span>
+            <span id="subWeatherDesc" class="text-zinc-400 hidden sm:inline">Clear</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- RIGHT: Live Weather & Utility Drawer Zone -->
+      <section id="sideZone" class="w-64 sm:w-72 md:w-80 lg:w-96 flex flex-col justify-between gap-3 bg-zinc-950/80 border border-zinc-900 rounded-2xl p-4 md:p-5 backdrop-blur-sm">
+
+        <!-- Weather Card -->
+        <div id="weatherCard" class="flex flex-col gap-2">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div id="weatherIcon" class="w-12 h-12 flex items-center justify-center text-4xl">
+                ☀️
+              </div>
+              <div>
+                <div class="flex items-baseline gap-1">
+                  <span id="weatherTemp" class="text-3xl sm:text-4xl font-bold font-num">--</span>
+                  <span id="weatherUnit" class="text-sm font-semibold text-zinc-400">°C</span>
+                </div>
+                <div id="weatherDesc" class="text-xs text-zinc-400 font-medium capitalize">Updating weather...</div>
+              </div>
+            </div>
+            <button id="btnRefreshWeather" title="Refresh Weather" class="text-zinc-600 hover:text-zinc-300 text-sm transition">
+              ↻
+            </button>
+          </div>
+
+          <!-- Weather Secondary Stats -->
+          <div class="grid grid-cols-3 gap-1 pt-2 border-t border-zinc-900 text-[11px] text-zinc-400 font-mono">
+            <div>
+              <span class="text-zinc-500 block text-[10px]">H / L</span>
+              <span id="weatherHighLow">-- / --</span>
+            </div>
+            <div>
+              <span class="text-zinc-500 block text-[10px]">HUMIDITY</span>
+              <span id="weatherHumidity">--%</span>
+            </div>
+            <div>
+              <span class="text-zinc-500 block text-[10px]">WIND</span>
+              <span id="weatherWind">-- km/h</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Utility Navigation Tabs -->
+        <div class="grid grid-cols-4 gap-1.5 pt-2 border-t border-zinc-900">
+          <button id="tabClock" class="py-2 px-1 rounded-xl text-xs font-semibold bg-zinc-800 text-white flex flex-col items-center gap-1 transition">
+            <span>🕒</span>
+            <span class="text-[10px]">Clock</span>
+          </button>
+          <button id="tabTimer" class="py-2 px-1 rounded-xl text-xs font-semibold bg-zinc-900 text-zinc-400 hover:text-white flex flex-col items-center gap-1 transition">
+            <span>⏳</span>
+            <span class="text-[10px]">Timer</span>
+          </button>
+          <button id="tabStopwatch" class="py-2 px-1 rounded-xl text-xs font-semibold bg-zinc-900 text-zinc-400 hover:text-white flex flex-col items-center gap-1 transition">
+            <span>⏱️</span>
+            <span class="text-[10px]">Watch</span>
+          </button>
+          <button id="tabAlarm" class="py-2 px-1 rounded-xl text-xs font-semibold bg-zinc-900 text-zinc-400 hover:text-white flex flex-col items-center gap-1 transition">
+            <span>⏰</span>
+            <span class="text-[10px]">Alarm</span>
+          </button>
+        </div>
+
+        <!-- Quick Ambient Audio (Noise Generator for Sleep/Focus) -->
+        <div class="flex items-center justify-between pt-1 text-xs text-zinc-400">
+          <span class="flex items-center gap-1 text-[11px]">
+            <span>🎧</span> Ambient Sound
+          </span>
+          <div class="flex items-center gap-1">
+            <button id="ambientOff" class="px-2 py-0.5 rounded text-[10px] bg-zinc-800 text-white">Off</button>
+            <button id="ambientRain" class="px-2 py-0.5 rounded text-[10px] bg-zinc-900 text-zinc-400 hover:text-white">Rain</button>
+            <button id="ambientPink" class="px-2 py-0.5 rounded text-[10px] bg-zinc-900 text-zinc-400 hover:text-white">White</button>
+          </div>
+        </div>
+
+      </section>
+    </main>
+
+    <!-- Bottom Info Bar (Auto-hides in fullscreen) -->
+    <footer class="hud-element flex items-center justify-between text-[11px] text-zinc-600 font-mono">
+      <span>Realme 1 Fullscreen Clock Mode • Tap anywhere to wake controls • Double-tap for browser fullscreen</span>
+      <span class="flex items-center gap-2">
+        <span id="burnInIndicator" title="Pixel shift protection active">🔒 Pixel-Shift Protected</span>
+        <span>•</span>
+        <a href="./index.html" class="hover:text-zinc-400 transition" target="_blank">3D Enclosure Studio ↗</a>
+      </span>
+    </footer>
+
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- MODAL 1: TIMER PANEL -->
+  <!-- ======================================================================= -->
+  <div id="modalTimer" class="fixed inset-0 bg-black/90 backdrop-blur-md z-40 hidden flex items-center justify-center p-4">
+    <div class="bg-zinc-950 border border-zinc-800 rounded-3xl p-6 w-full max-w-md flex flex-col items-center gap-6 shadow-2xl">
+      <div class="w-full flex items-center justify-between border-b border-zinc-900 pb-3">
+        <h3 class="text-lg font-bold flex items-center gap-2 text-zinc-100">
+          <span>⏳</span> Countdown Timer
+        </h3>
+        <button id="closeTimer" class="text-zinc-500 hover:text-white text-xl">✕</button>
+      </div>
+
+      <!-- Circular Timer Display -->
+      <div class="relative w-48 h-48 flex items-center justify-center">
+        <svg class="w-full h-full -rotate-90" viewBox="0 0 100 100">
+          <circle cx="50" cy="50" r="44" class="stroke-zinc-800" stroke-width="6" fill="transparent" />
+          <circle id="timerProgressRing" cx="50" cy="50" r="44" stroke="currentColor" stroke-width="6" fill="transparent"
+                  stroke-dasharray="276.46" stroke-dashoffset="0" stroke-linecap="round"
+                  style="color: var(--theme-color);" class="transition-all duration-300" />
+        </svg>
+        <div class="absolute flex flex-col items-center">
+          <span id="timerDisplay" class="text-4xl font-bold font-num tracking-tight">05:00</span>
+          <span id="timerLabel" class="text-xs text-zinc-500 font-medium">Ready</span>
+        </div>
+      </div>
+
+      <!-- Quick Preset Buttons -->
+      <div class="grid grid-cols-4 gap-2 w-full">
+        <button class="timerPreset py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300" data-seconds="60">+1m</button>
+        <button class="timerPreset py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300" data-seconds="180">+3m</button>
+        <button class="timerPreset py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300" data-seconds="300">+5m</button>
+        <button class="timerPreset py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300" data-seconds="600">+10m</button>
+        <button class="timerPreset py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300" data-seconds="900">+15m</button>
+        <button class="timerPreset py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300" data-seconds="1500">+25m</button>
+        <button class="timerPreset py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300" data-seconds="1800">+30m</button>
+        <button class="timerPreset py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300" data-seconds="3600">+1h</button>
+      </div>
+
+      <!-- Actions -->
+      <div class="flex items-center gap-3 w-full">
+        <button id="btnTimerToggle" class="flex-1 py-3 rounded-xl font-bold text-black text-sm transition shadow-lg" style="background-color: var(--theme-color);">
+          Start
+        </button>
+        <button id="btnTimerReset" class="py-3 px-6 rounded-xl bg-zinc-800 hover:bg-zinc-700 font-semibold text-zinc-300 text-sm transition">
+          Reset
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- MODAL 2: STOPWATCH PANEL -->
+  <!-- ======================================================================= -->
+  <div id="modalStopwatch" class="fixed inset-0 bg-black/90 backdrop-blur-md z-40 hidden flex items-center justify-center p-4">
+    <div class="bg-zinc-950 border border-zinc-800 rounded-3xl p-6 w-full max-w-md flex flex-col items-center gap-5 shadow-2xl">
+      <div class="w-full flex items-center justify-between border-b border-zinc-900 pb-3">
+        <h3 class="text-lg font-bold flex items-center gap-2 text-zinc-100">
+          <span>⏱️</span> Stopwatch
+        </h3>
+        <button id="closeStopwatch" class="text-zinc-500 hover:text-white text-xl">✕</button>
+      </div>
+
+      <div class="py-4 text-center">
+        <span id="stopwatchDisplay" class="text-6xl font-bold font-num tracking-tight" style="color: var(--theme-color);">00:00.00</span>
+      </div>
+
+      <!-- Controls -->
+      <div class="flex items-center gap-3 w-full">
+        <button id="btnSwStart" class="flex-1 py-3 rounded-xl font-bold text-black text-sm transition" style="background-color: var(--theme-color);">
+          Start
+        </button>
+        <button id="btnSwLap" class="py-3 px-5 rounded-xl bg-zinc-900 hover:bg-zinc-800 font-semibold text-zinc-300 text-sm transition" disabled>
+          Lap
+        </button>
+        <button id="btnSwReset" class="py-3 px-5 rounded-xl bg-zinc-800 hover:bg-zinc-700 font-semibold text-zinc-300 text-sm transition">
+          Reset
+        </button>
+      </div>
+
+      <!-- Laps List -->
+      <div class="w-full max-h-40 overflow-y-auto space-y-1.5 pr-1 font-mono text-xs">
+        <div id="lapsContainer" class="space-y-1">
+          <!-- Laps will appear here -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- MODAL 3: ALARMS PANEL -->
+  <!-- ======================================================================= -->
+  <div id="modalAlarm" class="fixed inset-0 bg-black/90 backdrop-blur-md z-40 hidden flex items-center justify-center p-4">
+    <div class="bg-zinc-950 border border-zinc-800 rounded-3xl p-6 w-full max-w-md flex flex-col gap-5 shadow-2xl">
+      <div class="w-full flex items-center justify-between border-b border-zinc-900 pb-3">
+        <h3 class="text-lg font-bold flex items-center gap-2 text-zinc-100">
+          <span>⏰</span> Daily Alarms
+        </h3>
+        <button id="closeAlarm" class="text-zinc-500 hover:text-white text-xl">✕</button>
+      </div>
+
+      <!-- Add New Alarm Row -->
+      <div class="flex items-center gap-2">
+        <input id="alarmTimeInput" type="time" value="07:00" class="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-white font-num font-semibold text-center text-lg focus:outline-none focus:border-amber-500" />
+        <button id="btnAddAlarm" class="py-2.5 px-4 rounded-xl font-bold text-black text-sm transition" style="background-color: var(--theme-color);">
+          + Add
+        </button>
+      </div>
+
+      <!-- Alarms List -->
+      <div id="alarmsList" class="max-h-56 overflow-y-auto space-y-2 pr-1">
+        <!-- Rendered via JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- MODAL 4: SETTINGS & THEMES -->
+  <!-- ======================================================================= -->
+  <div id="modalSettings" class="fixed inset-0 bg-black/90 backdrop-blur-md z-40 hidden flex items-center justify-center p-4">
+    <div class="bg-zinc-950 border border-zinc-800 rounded-3xl p-6 w-full max-w-md flex flex-col gap-5 shadow-2xl max-h-[90vh] overflow-y-auto">
+      <div class="w-full flex items-center justify-between border-b border-zinc-900 pb-3">
+        <h3 class="text-lg font-bold flex items-center gap-2 text-zinc-100">
+          <span>⚙️</span> Display & Weather Settings
+        </h3>
+        <button id="closeSettings" class="text-zinc-500 hover:text-white text-xl">✕</button>
+      </div>
+
+      <!-- Color Theme Presets -->
+      <div class="space-y-2">
+        <label class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Accent Theme Color</label>
+        <div class="grid grid-cols-5 gap-2">
+          <button class="themeBtn p-3 rounded-xl border border-zinc-800 flex flex-col items-center gap-1.5 hover:border-zinc-500 transition" data-color="#f59e0b" data-name="Amber">
+            <span class="w-5 h-5 rounded-full bg-amber-500 shadow-md"></span>
+            <span class="text-[10px] text-zinc-400">Amber</span>
+          </button>
+          <button class="themeBtn p-3 rounded-xl border border-zinc-800 flex flex-col items-center gap-1.5 hover:border-zinc-500 transition" data-color="#38bdf8" data-name="Cyan">
+            <span class="w-5 h-5 rounded-full bg-sky-400 shadow-md"></span>
+            <span class="text-[10px] text-zinc-400">Cyan</span>
+          </button>
+          <button class="themeBtn p-3 rounded-xl border border-zinc-800 flex flex-col items-center gap-1.5 hover:border-zinc-500 transition" data-color="#10b981" data-name="Emerald">
+            <span class="w-5 h-5 rounded-full bg-emerald-500 shadow-md"></span>
+            <span class="text-[10px] text-zinc-400">Green</span>
+          </button>
+          <button class="themeBtn p-3 rounded-xl border border-zinc-800 flex flex-col items-center gap-1.5 hover:border-zinc-500 transition" data-color="#f8fafc" data-name="White">
+            <span class="w-5 h-5 rounded-full bg-slate-100 shadow-md"></span>
+            <span class="text-[10px] text-zinc-400">White</span>
+          </button>
+          <button class="themeBtn p-3 rounded-xl border border-zinc-800 flex flex-col items-center gap-1.5 hover:border-zinc-500 transition" data-color="#ef4444" data-name="Night Red">
+            <span class="w-5 h-5 rounded-full bg-red-500 shadow-md"></span>
+            <span class="text-[10px] text-zinc-400">Night</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Clock Format Options -->
+      <div class="space-y-3 pt-2 border-t border-zinc-900">
+        <label class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Clock & Layout Options</label>
+        <div class="flex items-center justify-between">
+          <span class="text-sm text-zinc-300">Display Layout</span>
+          <select id="selLayoutMode" class="bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1 text-sm text-zinc-200">
+            <option value="fullscreen">Fullscreen Time (Giant Clock)</option>
+            <option value="dashboard">Split Dashboard (Clock + Drawer)</option>
+          </select>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-sm text-zinc-300">24-Hour Time Format</span>
+          <input id="chk24h" type="checkbox" class="w-5 h-5 accent-amber-500 cursor-pointer" />
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-sm text-zinc-300">Display Seconds</span>
+          <input id="chkSeconds" type="checkbox" checked class="w-5 h-5 accent-amber-500 cursor-pointer" />
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-sm text-zinc-300">Temperature Unit</span>
+          <select id="selTempUnit" class="bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1 text-sm text-zinc-200">
+            <option value="c">Celsius (°C)</option>
+            <option value="f">Fahrenheit (°F)</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Manual Weather Location -->
+      <div class="space-y-2 pt-2 border-t border-zinc-900">
+        <label class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Weather Location</label>
+        <div class="flex gap-2">
+          <input id="inputCitySearch" type="text" placeholder="Search city (e.g. Mumbai, London)" class="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-amber-500" />
+          <button id="btnSearchCity" class="py-2 px-3 rounded-xl bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold text-white">Find</button>
+        </div>
+        <button id="btnAutoGeo" class="text-xs text-sky-400 hover:underline">Use GPS / Device Auto-Location</button>
+      </div>
+
+      <!-- Hardware & Battery Protection -->
+      <div class="space-y-2 pt-2 border-t border-zinc-900 text-xs text-zinc-400">
+        <div class="flex items-center justify-between">
+          <span>Anti-Burn-In Pixel Drift</span>
+          <span class="text-emerald-400 font-semibold">Every 3 Mins</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span>Keep Screen Awake</span>
+          <span class="text-emerald-400 font-semibold">WakeLock Active</span>
+        </div>
+      </div>
+
+      <!-- Native Android App Download -->
+      <div class="space-y-2 pt-2 border-t border-zinc-900">
+        <label class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Dedicated Android Kiosk App</label>
+        <a href="./SmartClock-v1.0.0.apk" download class="w-full py-2.5 px-4 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 flex items-center justify-between text-xs font-semibold text-emerald-400 transition cursor-pointer">
+          <span class="flex items-center gap-2">
+            <span>📱</span>
+            <span>Download SmartClock.apk</span>
+          </span>
+          <span class="text-[10px] text-zinc-500 font-mono">27 KB • Signed</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ALARM TRIGGER POPUP OVERLAY -->
+  <div id="alarmPopup" class="fixed inset-0 bg-red-950/95 z-50 hidden flex flex-col items-center justify-center p-6 text-center animate-pulse">
+    <div class="text-8xl mb-4">⏰</div>
+    <h2 class="text-5xl font-black text-white font-num mb-2" id="alarmTriggerTime">07:00 AM</h2>
+    <p class="text-xl text-red-200 mb-8">Alarm is ringing!</p>
+    <div class="flex items-center gap-4">
+      <button id="btnDismissAlarm" class="py-4 px-10 rounded-2xl bg-white text-black font-extrabold text-xl shadow-2xl">
+        DISMISS
+      </button>
+      <button id="btnSnoozeAlarm" class="py-4 px-8 rounded-2xl bg-zinc-800 text-white font-bold text-lg">
+        Snooze (+5m)
+      </button>
+    </div>
+  </div>
+
+  <!-- ======================================================================= -->
+  <!-- JAVASCRIPT APPLICATION CORE -->
+  <!-- ======================================================================= -->
+  <script>
+    // -------------------------------------------------------------------------
+    // 1. SCREEN WAKE LOCK CONTROLLER (Keeps screen ON 24/7)
+    // -------------------------------------------------------------------------
+    let wakeLockSentinel = null;
+
+    async function requestWakeLock() {
+      if ('wakeLock' in navigator) {
+        try {
+          wakeLockSentinel = await navigator.wakeLock.request('screen');
+          console.info('Screen Wake Lock acquired successfully.');
+          updateWakeBadge(true);
+
+          wakeLockSentinel.addEventListener('release', () => {
+            console.warn('Wake Lock released.');
+            updateWakeBadge(false);
+          });
+        } catch (err) {
+          console.warn('Wake Lock request failed:', err);
+          updateWakeBadge(false);
+        }
+      } else {
+        console.warn('Wake Lock API not supported in this browser.');
+        updateWakeBadge(false);
+      }
+    }
+
+    function updateWakeBadge(isActive) {
+      const badge = document.getElementById('wakeLockStatus');
+      if (isActive) {
+        badge.className = 'flex items-center gap-1.5 text-emerald-500 transition-colors';
+        badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span><span class="text-[11px] font-medium hidden sm:inline">AWAKE</span>';
+      } else {
+        badge.className = 'flex items-center gap-1.5 text-zinc-600 transition-colors cursor-pointer';
+        badge.innerHTML = '<span class="w-2 h-2 rounded-full bg-zinc-600"></span><span class="text-[11px] font-medium hidden sm:inline">SLEEPING</span>';
+      }
+    }
+
+    // Auto re-acquire wake lock on page visibility change or click
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') requestWakeLock();
+    });
+    document.addEventListener('click', () => {
+      if (!wakeLockSentinel) requestWakeLock();
+      initAudio();
+    }, { once: true });
+
+    // Request immediately on load
+    requestWakeLock();
+
+    // Secondary fallback: tiny watchdog interval
+    setInterval(() => {
+      if (document.visibilityState === 'visible' && !wakeLockSentinel) {
+        requestWakeLock();
+      }
+    }, 30000);
+
+    // -------------------------------------------------------------------------
+    // 2. WEB AUDIO SYNTHESIZER (Offline Chimes & Ambient Noise)
+    // -------------------------------------------------------------------------
+    let audioCtx = null;
+    let ambientSource = null;
+    let ambientGain = null;
+
+    function initAudio() {
+      if (!audioCtx) {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (AudioContext) audioCtx = new AudioContext();
+      }
+      if (audioCtx && audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    // Melodic chime using harmonics (no external MP3 file needed!)
+    function playAlarmChime() {
+      initAudio();
+      if (!audioCtx) return;
+
+      const notes = [523.25, 659.25, 783.99, 1046.50]; // C5, E5, G5, C6 chord
+      notes.forEach((freq, index) => {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime + index * 0.14);
+
+        gain.gain.setValueAtTime(0, audioCtx.currentTime + index * 0.14);
+        gain.gain.linearRampToValueAtTime(0.3, audioCtx.currentTime + index * 0.14 + 0.05);
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + index * 0.14 + 1.2);
+
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.start(audioCtx.currentTime + index * 0.14);
+        osc.stop(audioCtx.currentTime + index * 0.14 + 1.3);
+      });
+    }
+
+    // Synthesized Ambient Sound (Rain / Pink Noise)
+    function stopAmbient() {
+      if (ambientSource) {
+        try { ambientSource.stop(); } catch(e){}
+        ambientSource.disconnect();
+        ambientSource = null;
+      }
+      document.getElementById('ambientOff').className = 'px-2 py-0.5 rounded text-[10px] bg-zinc-800 text-white';
+      document.getElementById('ambientRain').className = 'px-2 py-0.5 rounded text-[10px] bg-zinc-900 text-zinc-400 hover:text-white';
+      document.getElementById('ambientPink').className = 'px-2 py-0.5 rounded text-[10px] bg-zinc-900 text-zinc-400 hover:text-white';
+    }
+
+    function playAmbient(type) {
+      initAudio();
+      stopAmbient();
+      if (!audioCtx) return;
+
+      const bufferSize = audioCtx.sampleRate * 2;
+      const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+      const output = noiseBuffer.getChannelData(0);
+
+      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+      for (let i = 0; i < bufferSize; i++) {
+        const white = Math.random() * 2 - 1;
+        if (type === 'pink' || type === 'white') {
+          // Pink noise filter
+          b0 = 0.99886 * b0 + white * 0.0555179;
+          b1 = 0.99332 * b1 + white * 0.0750759;
+          b2 = 0.96900 * b2 + white * 0.1538520;
+          b3 = 0.86650 * b3 + white * 0.3104856;
+          b4 = 0.55000 * b4 + white * 0.5329522;
+          b5 = -0.7616 * b5 - white * 0.0168980;
+          output[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.08;
+          b6 = white * 0.115926;
+        } else {
+          // Rain simulation (Brownian filter + modulated drops)
+          b0 = (b0 + (0.02 * white)) / 1.02;
+          output[i] = b0 * 0.9;
+        }
+      }
+
+      ambientSource = audioCtx.createBufferSource();
+      ambientSource.buffer = noiseBuffer;
+      ambientSource.loop = true;
+
+      ambientGain = audioCtx.createGain();
+      ambientGain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+
+      ambientSource.connect(ambientGain);
+      ambientGain.connect(audioCtx.destination);
+      ambientSource.start();
+
+      if (type === 'rain') {
+        document.getElementById('ambientRain').className = 'px-2 py-0.5 rounded text-[10px] bg-sky-600 text-white';
+        document.getElementById('ambientOff').className = 'px-2 py-0.5 rounded text-[10px] bg-zinc-900 text-zinc-400';
+      } else {
+        document.getElementById('ambientPink').className = 'px-2 py-0.5 rounded text-[10px] bg-amber-600 text-white';
+        document.getElementById('ambientOff').className = 'px-2 py-0.5 rounded text-[10px] bg-zinc-900 text-zinc-400';
+      }
+    }
+
+    document.getElementById('ambientOff').addEventListener('click', stopAmbient);
+    document.getElementById('ambientRain').addEventListener('click', () => playAmbient('rain'));
+    document.getElementById('ambientPink').addEventListener('click', () => playAmbient('pink'));
+
+    // -------------------------------------------------------------------------
+    // 3. TIME & DATE ENGINE
+    // -------------------------------------------------------------------------
+    let is24Hour = localStorage.getItem('smartclock_24h') === 'true';
+    let showSeconds = localStorage.getItem('smartclock_sec') !== 'false';
+
+    const clockTimeEl = document.getElementById('clockTime');
+    const clockAmPmEl = document.getElementById('clockAmPm');
+    const clockSecondsEl = document.getElementById('clockSeconds');
+    const clockWeekdayEl = document.getElementById('clockWeekday');
+    const clockDateEl = document.getElementById('clockDate');
+
+    function updateClock() {
+      const now = new Date();
+      let hours = now.getHours();
+      const minutes = now.getMinutes();
+      const seconds = now.getSeconds();
+
+      if (!is24Hour) {
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        clockAmPmEl.textContent = ampm;
+        clockAmPmEl.style.display = 'inline';
+        hours = hours % 12;
+        hours = hours ? hours : 12; // 0 becomes 12
+      } else {
+        clockAmPmEl.style.display = 'none';
+      }
+
+      const hStr = String(hours).padStart(is24Hour ? 2 : 1, '0');
+      const mStr = String(minutes).padStart(2, '0');
+      const sStr = String(seconds).padStart(2, '0');
+
+      clockTimeEl.textContent = `${hStr}:${mStr}`;
+
+      if (showSeconds) {
+        clockSecondsEl.textContent = sStr;
+        clockSecondsEl.style.display = 'inline';
+      } else {
+        clockSecondsEl.style.display = 'none';
+      }
+
+      // Date
+      const weekdays = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+      const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+      clockWeekdayEl.textContent = weekdays[now.getDay()];
+      clockDateEl.textContent = `${months[now.getMonth()]} ${now.getDate()}, ${now.getFullYear()}`;
+
+      // Check Alarms
+      checkAlarms(now);
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // -------------------------------------------------------------------------
+    // 4. ANTI-BURN-IN PIXEL SHIFT (Drifts display 1-2px every 3 minutes)
+    // -------------------------------------------------------------------------
+    const burnInWrapper = document.getElementById('burnInWrapper');
+    let shiftIndex = 0;
+    const shiftDeltas = [
+      [0, 0], [1, 1], [-1, 1], [1, -1], [-1, -1], [2, 0], [0, 2], [-2, 0], [0, -2]
+    ];
+
+    setInterval(() => {
+      shiftIndex = (shiftIndex + 1) % shiftDeltas.length;
+      const [dx, dy] = shiftDeltas[shiftIndex];
+      burnInWrapper.style.transform = `translate(${dx}px, ${dy}px)`;
+    }, 180000); // 3 minutes
+
+    // -------------------------------------------------------------------------
+    // 5. LIVE WEATHER ENGINE (Open-Meteo API)
+    // -------------------------------------------------------------------------
+    let userLat = localStorage.getItem('smartclock_lat') || null;
+    let userLon = localStorage.getItem('smartclock_lon') || null;
+    let userCity = localStorage.getItem('smartclock_city') || 'Detecting...';
+    let tempUnit = localStorage.getItem('smartclock_temp_unit') || 'c';
+
+    const WMO_MAP = {
+      0:  { desc: 'Clear sky', icon: '☀️' },
+      1:  { desc: 'Mainly clear', icon: '🌤️' },
+      2:  { desc: 'Partly cloudy', icon: '⛅' },
+      3:  { desc: 'Overcast', icon: '☁️' },
+      45: { desc: 'Foggy', icon: '🌫️' },
+      48: { desc: 'Depositing rime fog', icon: '🌫️' },
+      51: { desc: 'Light drizzle', icon: '🌦️' },
+      53: { desc: 'Moderate drizzle', icon: '🌦️' },
+      55: { desc: 'Dense drizzle', icon: '🌧️' },
+      61: { desc: 'Slight rain', icon: '🌧️' },
+      63: { desc: 'Moderate rain', icon: '🌧️' },
+      65: { desc: 'Heavy rain', icon: '🌧️' },
+      71: { desc: 'Slight snow', icon: '🌨️' },
+      73: { desc: 'Moderate snow', icon: '🌨️' },
+      75: { desc: 'Heavy snow', icon: '❄️' },
+      80: { desc: 'Rain showers', icon: '🌦️' },
+      81: { desc: 'Heavy showers', icon: '🌧️' },
+      95: { desc: 'Thunderstorm', icon: '⛈️' },
+      96: { desc: 'Thunderstorm with hail', icon: '⛈️' }
+    };
+
+    async function fetchWeather() {
+      // Check cached weather first
+      const cached = localStorage.getItem('smartclock_weather_cache');
+      if (cached) {
+        try {
+          const cData = JSON.parse(cached);
+          if (Date.now() - cData.timestamp < 1800000) { // 30 min fresh
+            renderWeather(cData);
+          }
+        } catch(e){}
+      }
+
+      if (!userLat || !userLon) {
+        getUserLocation();
+        return;
+      }
+
+      try {
+        const url = `https://api.open-meteo.com/v1/forecast?latitude=${userLat}&longitude=${userLon}&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m&daily=temperature_2m_max,temperature_2m_min&timezone=auto`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error('Weather fetch failed');
+        const data = await res.json();
+
+        const weatherPayload = {
+          timestamp: Date.now(),
+          temp: data.current.temperature_2m,
+          humidity: data.current.relative_humidity_2m,
+          wind: data.current.wind_speed_10m,
+          code: data.current.weather_code,
+          high: data.daily.temperature_2m_max[0],
+          low: data.daily.temperature_2m_min[0],
+          city: userCity
+        };
+
+        localStorage.setItem('smartclock_weather_cache', JSON.stringify(weatherPayload));
+        renderWeather(weatherPayload);
+      } catch (err) {
+        console.warn('Weather fetch error:', err);
+      }
+    }
+
+    function renderWeather(data) {
+      let t = data.temp;
+      let h = data.high;
+      let l = data.low;
+
+      if (tempUnit === 'f') {
+        t = (t * 9/5) + 32;
+        h = (h * 9/5) + 32;
+        l = (l * 9/5) + 32;
+        document.getElementById('weatherUnit').textContent = '°F';
+      } else {
+        document.getElementById('weatherUnit').textContent = '°C';
+      }
+
+      document.getElementById('weatherTemp').textContent = Math.round(t);
+      document.getElementById('weatherHighLow').textContent = `${Math.round(h)}° / ${Math.round(l)}°`;
+      document.getElementById('weatherHumidity').textContent = `${data.humidity}%`;
+      document.getElementById('weatherWind').textContent = `${Math.round(data.wind)} km/h`;
+
+      const wInfo = WMO_MAP[data.code] || { desc: 'Fair', icon: '⛅' };
+      document.getElementById('weatherDesc').textContent = wInfo.desc;
+      document.getElementById('weatherIcon').textContent = wInfo.icon;
+      document.getElementById('locCityName').textContent = userCity || 'Local';
+
+      // Update Fullscreen Mode Sub-bar Weather Pill
+      const subTemp = document.getElementById('subWeatherTemp');
+      const subIcon = document.getElementById('subWeatherIcon');
+      const subDesc = document.getElementById('subWeatherDesc');
+      if (subTemp) subTemp.textContent = `${Math.round(t)}°${tempUnit === 'f' ? 'F' : 'C'}`;
+      if (subIcon) subIcon.textContent = wInfo.icon;
+      if (subDesc) subDesc.textContent = wInfo.desc;
+    }
+
+    function getUserLocation() {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          async (pos) => {
+            userLat = pos.coords.latitude.toFixed(4);
+            userLon = pos.coords.longitude.toFixed(4);
+            localStorage.setItem('smartclock_lat', userLat);
+            localStorage.setItem('smartclock_lon', userLon);
+
+            // Reverse geocode via Open-Meteo
+            try {
+              const r = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=&latitude=${userLat}&longitude=${userLon}&count=1`);
+              userCity = 'Current Location';
+            } catch(e) {
+              userCity = 'Local';
+            }
+            localStorage.setItem('smartclock_city', userCity);
+            fetchWeather();
+          },
+          (err) => {
+            console.warn('Geolocation denied/unavailable, defaulting to New Delhi:', err);
+            userLat = 28.6139;
+            userLon = 77.2090;
+            userCity = 'New Delhi';
+            localStorage.setItem('smartclock_lat', userLat);
+            localStorage.setItem('smartclock_lon', userLon);
+            localStorage.setItem('smartclock_city', userCity);
+            fetchWeather();
+          },
+          { timeout: 8000 }
+        );
+      } else {
+        userLat = 28.6139; userLon = 77.2090; userCity = 'New Delhi';
+        fetchWeather();
+      }
+    }
+
+    document.getElementById('btnRefreshWeather').addEventListener('click', fetchWeather);
+    document.getElementById('btnAutoGeo').addEventListener('click', () => {
+      localStorage.removeItem('smartclock_lat');
+      localStorage.removeItem('smartclock_lon');
+      getUserLocation();
+      closeAllModals();
+    });
+
+    document.getElementById('btnSearchCity').addEventListener('click', async () => {
+      const q = document.getElementById('inputCitySearch').value.trim();
+      if (!q) return;
+      try {
+        const r = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(q)}&count=1&language=en&format=json`);
+        const res = await r.json();
+        if (res.results && res.results.length > 0) {
+          const c = res.results[0];
+          userLat = c.latitude;
+          userLon = c.longitude;
+          userCity = c.name + (c.country ? `, ${c.country}` : '');
+          localStorage.setItem('smartclock_lat', userLat);
+          localStorage.setItem('smartclock_lon', userLon);
+          localStorage.setItem('smartclock_city', userCity);
+          fetchWeather();
+          closeAllModals();
+        } else {
+          alert('City not found. Please try another name.');
+        }
+      } catch(e) {
+        alert('Could not search city: ' + e.message);
+      }
+    });
+
+    // Initial weather fetch & hourly refresh
+    fetchWeather();
+    setInterval(fetchWeather, 1800000); // 30 mins
+
+    // -------------------------------------------------------------------------
+    // 6. COUNTDOWN TIMER
+    // -------------------------------------------------------------------------
+    let timerTotal = 300; // 5 mins default
+    let timerRemaining = 300;
+    let timerInterval = null;
+    let timerRunning = false;
+
+    const timerDisplay = document.getElementById('timerDisplay');
+    const timerLabel = document.getElementById('timerLabel');
+    const timerProgressRing = document.getElementById('timerProgressRing');
+    const btnTimerToggle = document.getElementById('btnTimerToggle');
+    const btnTimerReset = document.getElementById('btnTimerReset');
+    const CIRCUMFERENCE = 2 * Math.PI * 44; // ~276.46
+
+    function formatTimer(sec) {
+      const m = Math.floor(sec / 60);
+      const s = sec % 60;
+      return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    }
+
+    function updateTimerUI() {
+      timerDisplay.textContent = formatTimer(timerRemaining);
+      const frac = timerTotal > 0 ? (timerRemaining / timerTotal) : 0;
+      timerProgressRing.style.strokeDashoffset = CIRCUMFERENCE * (1 - frac);
+    }
+
+    function startTimer() {
+      if (timerRunning) return;
+      timerRunning = true;
+      btnTimerToggle.textContent = 'Pause';
+      btnTimerToggle.className = 'flex-1 py-3 rounded-xl font-bold bg-amber-500 text-black text-sm transition';
+      timerLabel.textContent = 'Counting down...';
+
+      timerInterval = setInterval(() => {
+        if (timerRemaining > 0) {
+          timerRemaining--;
+          updateTimerUI();
+        } else {
+          pauseTimer();
+          timerLabel.textContent = 'Time Up!';
+          playAlarmChime();
+          // Alert user
+          if ('vibrate' in navigator) navigator.vibrate([300, 150, 300, 150, 500]);
+        }
+      }, 1000);
+    }
+
+    function pauseTimer() {
+      timerRunning = false;
+      clearInterval(timerInterval);
+      btnTimerToggle.textContent = 'Resume';
+      btnTimerToggle.className = 'flex-1 py-3 rounded-xl font-bold text-black text-sm transition shadow-lg';
+      btnTimerToggle.style.backgroundColor = 'var(--theme-color)';
+    }
+
+    btnTimerToggle.addEventListener('click', () => {
+      if (timerRunning) pauseTimer();
+      else startTimer();
+    });
+
+    btnTimerReset.addEventListener('click', () => {
+      pauseTimer();
+      timerRemaining = timerTotal;
+      timerLabel.textContent = 'Ready';
+      btnTimerToggle.textContent = 'Start';
+      updateTimerUI();
+    });
+
+    document.querySelectorAll('.timerPreset').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const secs = parseInt(btn.dataset.seconds, 10);
+        pauseTimer();
+        timerTotal = secs;
+        timerRemaining = secs;
+        timerLabel.textContent = 'Ready';
+        btnTimerToggle.textContent = 'Start';
+        updateTimerUI();
+      });
+    });
+
+    updateTimerUI();
+
+    // -------------------------------------------------------------------------
+    // 7. STOPWATCH
+    // -------------------------------------------------------------------------
+    let swStartTime = 0;
+    let swElapsedTime = 0;
+    let swInterval = null;
+    let swRunning = false;
+    let laps = [];
+
+    const swDisplay = document.getElementById('stopwatchDisplay');
+    const btnSwStart = document.getElementById('btnSwStart');
+    const btnSwLap = document.getElementById('btnSwLap');
+    const btnSwReset = document.getElementById('btnSwReset');
+    const lapsContainer = document.getElementById('lapsContainer');
+
+    function formatStopwatch(ms) {
+      const min = Math.floor(ms / 60000);
+      const sec = Math.floor((ms % 60000) / 1000);
+      const centi = Math.floor((ms % 1000) / 10);
+      return `${String(min).padStart(2, '0')}:${String(sec).padStart(2, '0')}.${String(centi).padStart(2, '0')}`;
+    }
+
+    function updateStopwatch() {
+      const current = swElapsedTime + (swRunning ? (performance.now() - swStartTime) : 0);
+      swDisplay.textContent = formatStopwatch(current);
+    }
+
+    btnSwStart.addEventListener('click', () => {
+      if (!swRunning) {
+        swRunning = true;
+        swStartTime = performance.now();
+        swInterval = setInterval(updateStopwatch, 30);
+        btnSwStart.textContent = 'Stop';
+        btnSwStart.style.backgroundColor = '#ef4444';
+        btnSwLap.disabled = false;
+      } else {
+        swRunning = false;
+        swElapsedTime += performance.now() - swStartTime;
+        clearInterval(swInterval);
+        btnSwStart.textContent = 'Resume';
+        btnSwStart.style.backgroundColor = 'var(--theme-color)';
+        btnSwLap.disabled = true;
+      }
+    });
+
+    btnSwReset.addEventListener('click', () => {
+      swRunning = false;
+      clearInterval(swInterval);
+      swStartTime = 0;
+      swElapsedTime = 0;
+      laps = [];
+      swDisplay.textContent = '00:00.00';
+      btnSwStart.textContent = 'Start';
+      btnSwStart.style.backgroundColor = 'var(--theme-color)';
+      btnSwLap.disabled = true;
+      lapsContainer.innerHTML = '';
+    });
+
+    btnSwLap.addEventListener('click', () => {
+      const current = swElapsedTime + (swRunning ? (performance.now() - swStartTime) : 0);
+      laps.unshift(current);
+      renderLaps();
+    });
+
+    function renderLaps() {
+      lapsContainer.innerHTML = laps.map((lapMs, idx) => {
+        const lapNum = laps.length - idx;
+        return `
+          <div class="flex items-center justify-between py-1 px-2 rounded bg-zinc-900 border border-zinc-800">
+            <span class="text-zinc-500 font-semibold">Lap ${lapNum}</span>
+            <span class="text-zinc-200">${formatStopwatch(lapMs)}</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // -------------------------------------------------------------------------
+    // 8. ALARMS ENGINE
+    // -------------------------------------------------------------------------
+    let alarms = JSON.parse(localStorage.getItem('smartclock_alarms') || '[{"time": "07:00", "active": false}]');
+    let alarmRinging = false;
+    let alarmAudioInterval = null;
+
+    function renderAlarms() {
+      const container = document.getElementById('alarmsList');
+      if (alarms.length === 0) {
+        container.innerHTML = '<div class="text-center text-xs text-zinc-500 py-4">No alarms set.</div>';
+        document.getElementById('nextAlarmBadge').style.display = 'none';
+        return;
+      }
+
+      container.innerHTML = alarms.map((a, i) => `
+        <div class="flex items-center justify-between py-2 px-3 rounded-xl bg-zinc-900 border border-zinc-800">
+          <span class="text-xl font-bold font-num ${a.active ? 'text-zinc-100' : 'text-zinc-500'}">${a.time}</span>
+          <div class="flex items-center gap-2">
+            <input type="checkbox" ${a.active ? 'checked' : ''} onchange="toggleAlarm(${i})" class="w-5 h-5 accent-amber-500 cursor-pointer" />
+            <button onclick="deleteAlarm(${i})" class="text-zinc-600 hover:text-red-400 p-1">✕</button>
+          </div>
+        </div>
+      `).join('');
+
+      // Update badge
+      const activeAlarm = alarms.find(a => a.active);
+      const badge = document.getElementById('nextAlarmBadge');
+      if (activeAlarm) {
+        badge.style.display = 'inline-flex';
+        document.getElementById('nextAlarmTime').textContent = activeAlarm.time;
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    window.toggleAlarm = function(i) {
+      alarms[i].active = !alarms[i].active;
+      localStorage.setItem('smartclock_alarms', JSON.stringify(alarms));
+      renderAlarms();
+    };
+
+    window.deleteAlarm = function(i) {
+      alarms.splice(i, 1);
+      localStorage.setItem('smartclock_alarms', JSON.stringify(alarms));
+      renderAlarms();
+    };
+
+    document.getElementById('btnAddAlarm').addEventListener('click', () => {
+      const val = document.getElementById('alarmTimeInput').value;
+      if (!val) return;
+      alarms.push({ time: val, active: true });
+      localStorage.setItem('smartclock_alarms', JSON.stringify(alarms));
+      renderAlarms();
+    });
+
+    renderAlarms();
+
+    function checkAlarms(now) {
+      const curH = String(now.getHours()).padStart(2, '0');
+      const curM = String(now.getMinutes()).padStart(2, '0');
+      const curS = now.getSeconds();
+      const timeStr = `${curH}:${curM}`;
+
+      if (curS === 0 && !alarmRinging) {
+        const match = alarms.find(a => a.active && a.time === timeStr);
+        if (match) {
+          triggerAlarm(timeStr);
+        }
+      }
+    }
+
+    function triggerAlarm(timeStr) {
+      alarmRinging = true;
+      document.getElementById('alarmTriggerTime').textContent = timeStr;
+      document.getElementById('alarmPopup').classList.remove('hidden');
+
+      playAlarmChime();
+      alarmAudioInterval = setInterval(playAlarmChime, 3000);
+      if ('vibrate' in navigator) navigator.vibrate([500, 200, 500, 200, 500]);
+    }
+
+    function dismissAlarm() {
+      alarmRinging = false;
+      clearInterval(alarmAudioInterval);
+      document.getElementById('alarmPopup').classList.add('hidden');
+    }
+
+    document.getElementById('btnDismissAlarm').addEventListener('click', dismissAlarm);
+    document.getElementById('btnSnoozeAlarm').addEventListener('click', () => {
+      dismissAlarm();
+      // Add a 5 minute alarm
+      const now = new Date(Date.now() + 5 * 60000);
+      const h = String(now.getHours()).padStart(2, '0');
+      const m = String(now.getMinutes()).padStart(2, '0');
+      alarms.push({ time: `${h}:${m}`, active: true });
+      renderAlarms();
+    });
+
+    // -------------------------------------------------------------------------
+    // 9. THEMES, DIMMER & SETTINGS
+    // -------------------------------------------------------------------------
+    let currentDim = false;
+
+    document.querySelectorAll('.themeBtn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const col = btn.dataset.color;
+        document.documentElement.style.setProperty('--theme-color', col);
+        document.documentElement.style.setProperty('--theme-glow', col + '40');
+        localStorage.setItem('smartclock_theme', col);
+      });
+    });
+
+    const savedTheme = localStorage.getItem('smartclock_theme');
+    if (savedTheme) {
+      document.documentElement.style.setProperty('--theme-color', savedTheme);
+      document.documentElement.style.setProperty('--theme-glow', savedTheme + '40');
+    }
+
+    // Night Dimmer Mode (8% brightness, red night mode)
+    const btnDimmer = document.getElementById('btnDimmer');
+    btnDimmer.addEventListener('click', () => {
+      currentDim = !currentDim;
+      if (currentDim) {
+        document.documentElement.style.setProperty('--dim-opacity', '0.08');
+        btnDimmer.textContent = '☀️';
+        btnDimmer.className = 'p-1.5 rounded-lg bg-amber-500/20 border border-amber-500/50 text-amber-300 transition';
+      } else {
+        document.documentElement.style.setProperty('--dim-opacity', '1.0');
+        btnDimmer.textContent = '🌙';
+        btnDimmer.className = 'p-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 transition';
+      }
+    });
+
+    // -------------------------------------------------------------------------
+    // FULLSCREEN TIME & LAYOUT MANAGER
+    // -------------------------------------------------------------------------
+    let currentLayout = localStorage.getItem('smartclock_layout_mode') || 'fullscreen';
+    let hudTimeout = null;
+
+    function setLayoutMode(mode) {
+      currentLayout = mode;
+      localStorage.setItem('smartclock_layout_mode', mode);
+      const body = document.body;
+      const icon = document.getElementById('layoutModeIcon');
+      const label = document.getElementById('layoutModeLabel');
+      const btnToggle = document.getElementById('btnToggleLayout');
+      const selLayout = document.getElementById('selLayoutMode');
+
+      if (selLayout) selLayout.value = mode;
+
+      if (mode === 'fullscreen') {
+        body.classList.remove('mode-dashboard');
+        body.classList.add('mode-fullscreen');
+        if (icon) icon.textContent = '🗂️';
+        if (label) label.textContent = 'Dashboard';
+        if (btnToggle) btnToggle.title = 'Switch to Split Dashboard';
+        resetHudTimer();
+      } else {
+        body.classList.remove('mode-fullscreen', 'hud-hidden');
+        body.classList.add('mode-dashboard');
+        if (icon) icon.textContent = '🔲';
+        if (label) label.textContent = 'Fullscreen';
+        if (btnToggle) btnToggle.title = 'Switch to Fullscreen Time';
+        clearTimeout(hudTimeout);
+      }
+    }
+
+    // Auto-Hiding HUD in Fullscreen Mode
+    function resetHudTimer() {
+      if (currentLayout !== 'fullscreen') return;
+      document.body.classList.remove('hud-hidden');
+      clearTimeout(hudTimeout);
+      hudTimeout = setTimeout(() => {
+        const hasOpenModal = Object.values(modals).some(m => !m.classList.contains('hidden'));
+        if (!hasOpenModal && currentLayout === 'fullscreen') {
+          document.body.classList.add('hud-hidden');
+        }
+      }, 3500);
+    }
+
+    ['mousemove', 'pointermove', 'touchstart', 'click', 'keydown'].forEach(evt => {
+      window.addEventListener(evt, () => {
+        resetHudTimer();
+      }, { passive: true });
+    });
+
+    // Native Browser Fullscreen Toggle
+    function toggleBrowserFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().then(() => {
+          if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('landscape').catch(() => {});
+          }
+        }).catch(e => console.warn('Fullscreen request failed:', e));
+      } else {
+        document.exitFullscreen().catch(e => console.warn('Exit fullscreen failed:', e));
+      }
+    }
+
+    document.getElementById('btnFullscreen').addEventListener('click', toggleBrowserFullscreen);
+
+    // Double-tap or click on clock zone
+    let lastClockTap = 0;
+    document.getElementById('clockZone').addEventListener('click', (e) => {
+      if (e.target.closest('#subWeatherPill')) {
+        setLayoutMode('dashboard');
+        return;
+      }
+      const now = Date.now();
+      if (now - lastClockTap < 350) {
+        toggleBrowserFullscreen();
+      } else {
+        resetHudTimer();
+      }
+      lastClockTap = now;
+    });
+
+    // Keyboard shortcuts: F for browser fullscreen, D for layout mode
+    window.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+      if (e.key === 'f' || e.key === 'F') {
+        toggleBrowserFullscreen();
+      } else if (e.key === 'd' || e.key === 'D') {
+        setLayoutMode(currentLayout === 'fullscreen' ? 'dashboard' : 'fullscreen');
+      }
+    });
+
+    // Layout Toggle Button
+    document.getElementById('btnToggleLayout').addEventListener('click', () => {
+      setLayoutMode(currentLayout === 'fullscreen' ? 'dashboard' : 'fullscreen');
+    });
+
+    // Header Quick Utility Buttons
+    document.getElementById('btnHeaderTimer').addEventListener('click', () => openModal('timer'));
+    document.getElementById('btnHeaderStopwatch').addEventListener('click', () => openModal('stopwatch'));
+    document.getElementById('btnHeaderAlarm').addEventListener('click', () => openModal('alarm'));
+
+    // Battery API
+    if ('getBattery' in navigator) {
+      navigator.getBattery().then(battery => {
+        const bBadge = document.getElementById('batteryBadge');
+        const bPercent = document.getElementById('batteryPercent');
+        bBadge.classList.remove('hidden');
+        bBadge.classList.add('inline-flex');
+
+        function updateBattery() {
+          const lvl = Math.round(battery.level * 100);
+          bPercent.textContent = `${lvl}%${battery.charging ? ' ⚡' : ''}`;
+        }
+        updateBattery();
+        battery.addEventListener('levelchange', updateBattery);
+        battery.addEventListener('chargingchange', updateBattery);
+      });
+    }
+
+    // Modal Manager
+    const modals = {
+      timer: document.getElementById('modalTimer'),
+      stopwatch: document.getElementById('modalStopwatch'),
+      alarm: document.getElementById('modalAlarm'),
+      settings: document.getElementById('modalSettings')
+    };
+
+    function closeAllModals() {
+      Object.values(modals).forEach(m => m.classList.add('hidden'));
+      document.querySelectorAll('#sideZone button').forEach(b => {
+        b.classList.remove('bg-zinc-800', 'text-white');
+        b.classList.add('bg-zinc-900', 'text-zinc-400');
+      });
+      document.getElementById('tabClock').classList.remove('bg-zinc-900', 'text-zinc-400');
+      document.getElementById('tabClock').classList.add('bg-zinc-800', 'text-white');
+      resetHudTimer();
+    }
+
+    function openModal(name) {
+      closeAllModals();
+      if (modals[name]) modals[name].classList.remove('hidden');
+      document.body.classList.remove('hud-hidden');
+    }
+
+    document.getElementById('tabClock').addEventListener('click', closeAllModals);
+    document.getElementById('tabTimer').addEventListener('click', () => openModal('timer'));
+    document.getElementById('tabStopwatch').addEventListener('click', () => openModal('stopwatch'));
+    document.getElementById('tabAlarm').addEventListener('click', () => openModal('alarm'));
+    document.getElementById('btnSettings').addEventListener('click', () => openModal('settings'));
+
+    document.getElementById('closeTimer').addEventListener('click', closeAllModals);
+    document.getElementById('closeStopwatch').addEventListener('click', closeAllModals);
+    document.getElementById('closeAlarm').addEventListener('click', closeAllModals);
+    document.getElementById('closeSettings').addEventListener('click', closeAllModals);
+
+    // Settings checkboxes
+    const chk24h = document.getElementById('chk24h');
+    chk24h.checked = is24Hour;
+    chk24h.addEventListener('change', () => {
+      is24Hour = chk24h.checked;
+      localStorage.setItem('smartclock_24h', is24Hour);
+      updateClock();
+    });
+
+    const chkSec = document.getElementById('chkSeconds');
+    chkSec.checked = showSeconds;
+    chkSec.addEventListener('change', () => {
+      showSeconds = chkSec.checked;
+      localStorage.setItem('smartclock_sec', showSeconds);
+      updateClock();
+    });
+
+    const selLayout = document.getElementById('selLayoutMode');
+    if (selLayout) {
+      selLayout.value = currentLayout;
+      selLayout.addEventListener('change', () => {
+        setLayoutMode(selLayout.value);
+      });
+    }
+
+    const selTemp = document.getElementById('selTempUnit');
+    selTemp.value = tempUnit;
+    selTemp.addEventListener('change', () => {
+      tempUnit = selTemp.value;
+      localStorage.setItem('smartclock_temp_unit', tempUnit);
+      fetchWeather();
+    });
+
+    // Initialize layout mode
+    setLayoutMode(currentLayout);
+  </script>
+</body>
+</html>

@@ -60,6 +60,92 @@
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
     }
 
+    /* Offline Core CSS Utility Rules */
+    .hidden { display: none !important; }
+    .flex { display: flex; }
+    .inline-flex { display: inline-flex; }
+    .flex-col { flex-direction: column; }
+    .flex-row { flex-direction: row; }
+    .items-center { align-items: center; }
+    .items-start { align-items: flex-start; }
+    .items-baseline { align-items: baseline; }
+    .justify-between { justify-content: space-between; }
+    .justify-center { justify-content: center; }
+    .flex-1 { flex: 1 1 0%; }
+    .w-full { width: 100%; }
+    .h-full { height: 100%; }
+    .relative { position: relative; }
+    .fixed { position: fixed; }
+    .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+    .z-40 { z-index: 40; }
+    .z-50 { z-index: 50; }
+    .gap-1 { gap: 0.25rem; }
+    .gap-1\.5 { gap: 0.375rem; }
+    .gap-2 { gap: 0.5rem; }
+    .gap-3 { gap: 0.75rem; }
+    .gap-4 { gap: 1rem; }
+    .gap-6 { gap: 1.5rem; }
+    .gap-8 { gap: 2rem; }
+    .p-2 { padding: 0.5rem; }
+    .p-3 { padding: 0.75rem; }
+    .p-4 { padding: 1rem; }
+    .p-6 { padding: 1.5rem; }
+    .p-8 { padding: 2rem; }
+    .px-2\.5 { padding-left: 0.625rem; padding-right: 0.625rem; }
+    .px-3 { padding-left: 0.75rem; padding-right: 0.75rem; }
+    .px-4 { padding-left: 1rem; padding-right: 1rem; }
+    .px-8 { padding-left: 2rem; padding-right: 2rem; }
+    .px-10 { padding-left: 2.5rem; padding-right: 2.5rem; }
+    .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+    .py-1\.5 { padding-top: 0.375rem; padding-bottom: 0.375rem; }
+    .py-2 { padding-top: 0.5rem; padding-bottom: 0.5rem; }
+    .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+    .py-4 { padding-top: 1rem; padding-bottom: 1rem; }
+    .rounded-md { border-radius: 0.375rem; }
+    .rounded-lg { border-radius: 0.5rem; }
+    .rounded-xl { border-radius: 0.75rem; }
+    .rounded-2xl { border-radius: 1rem; }
+    .rounded-3xl { border-radius: 1.5rem; }
+    .rounded-full { border-radius: 9999px; }
+    .border { border: 1px solid #27272a; }
+    .border-b { border-bottom: 1px solid #27272a; }
+    .border-t { border-top: 1px solid #27272a; }
+    .bg-black { background-color: #000000 !important; }
+    .bg-zinc-900 { background-color: #18181b; }
+    .bg-zinc-950 { background-color: #09090b; }
+    .text-white { color: #ffffff !important; }
+    .text-zinc-100 { color: #f4f4f5; }
+    .text-zinc-200 { color: #e4e4e7; }
+    .text-zinc-300 { color: #d4d4d8; }
+    .text-zinc-400 { color: #a1a1aa; }
+    .text-zinc-500 { color: #71717a; }
+    .text-zinc-600 { color: #52525b; }
+    .text-amber-400 { color: #fbbf24; }
+    .text-emerald-500 { color: #10b981; }
+    .font-bold { font-weight: 700; }
+    .font-extrabold { font-weight: 800; }
+    .font-black { font-weight: 900; }
+    .font-semibold { font-weight: 600; }
+    .font-medium { font-weight: 500; }
+    .font-light { font-weight: 300; }
+    .tracking-tight { letter-spacing: -0.025em; }
+    .tracking-wide { letter-spacing: 0.025em; }
+    .tracking-wider { letter-spacing: 0.05em; }
+    .tracking-widest { letter-spacing: 0.1em; }
+    .uppercase { text-transform: uppercase; }
+    .capitalize { text-transform: capitalize; }
+    .cursor-pointer { cursor: pointer; }
+    .transition { transition: all 0.2s ease; }
+    .grid { display: grid; }
+    .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    .grid-cols-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+    .grid-cols-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+    .max-w-md { max-width: 28rem; }
+    .max-w-lg { max-width: 32rem; }
+    button { font-family: inherit; }
+
+
     .font-num {
       font-family: 'JetBrains Mono', ui-monospace, monospace;
       font-variant-numeric: tabular-nums;
@@ -105,15 +191,120 @@
       filter: brightness(var(--dim-opacity));
       transition: opacity 0.3s ease, filter 0.3s ease;
     }
+
+    /* =========================================================================
+       Fullscreen Time Mode & Auto-Hiding HUD Styles
+       ========================================================================= */
+    .hud-element {
+      transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s ease;
+      will-change: opacity, transform;
+    }
+
+    body.hud-hidden header.hud-element {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transform: translateY(-14px);
+    }
+
+    body.hud-hidden footer.hud-element {
+      opacity: 0 !important;
+      pointer-events: none !important;
+      transform: translateY(14px);
+    }
+
+    /* Mode: Fullscreen Time (Dominant Giant Clock) */
+    body.mode-fullscreen main {
+      width: 100%;
+      height: 100%;
+      justify-content: center;
+      align-items: center;
+      margin: auto 0;
+    }
+
+    body.mode-fullscreen #clockZone {
+      width: 100% !important;
+      max-width: 100% !important;
+      align-items: center !important;
+      justify-content: center !important;
+      text-align: center !important;
+      padding: 0 !important;
+      margin: auto !important;
+      cursor: pointer;
+    }
+
+    body.mode-fullscreen #timeRow {
+      justify-content: center !important;
+      align-items: baseline !important;
+      width: 100%;
+    }
+
+    body.mode-fullscreen #clockTime {
+      /* Massive edge-to-edge digits calibrated to fill screen cleanly */
+      font-size: clamp(6.5rem, 28vw, 58vh) !important;
+      line-height: 0.9 !important;
+      letter-spacing: -0.04em !important;
+    }
+
+    body.mode-fullscreen #clockAmPm {
+      font-size: clamp(1.2rem, 3.2vw, 5.5vh) !important;
+    }
+
+    body.mode-fullscreen #clockSeconds {
+      font-size: clamp(1.8rem, 4.8vw, 8.2vh) !important;
+    }
+
+    body.mode-fullscreen #clockSubLine {
+      display: flex !important;
+      justify-content: center !important;
+      align-items: center !important;
+    }
+
+    body.mode-fullscreen #subWeatherPill {
+      display: inline-flex !important;
+    }
+
+    body.mode-fullscreen #sideZone {
+      display: none !important;
+    }
+
+    /* Mode: Split Dashboard (Clock + Right Drawer) */
+    body.mode-dashboard main {
+      justify-content: space-between;
+    }
+
+    body.mode-dashboard #clockZone {
+      align-items: flex-start;
+      justify-content: center;
+      padding-left: 0.75rem;
+      cursor: default;
+    }
+
+    body.mode-dashboard #timeRow {
+      justify-content: flex-start;
+      align-items: baseline;
+    }
+
+    body.mode-dashboard #clockTime {
+      font-size: clamp(4.5rem, 13vw, 10.5rem);
+      line-height: 1;
+    }
+
+    body.mode-dashboard #subWeatherPill {
+      display: none !important;
+    }
+
+    body.mode-dashboard #sideZone {
+      display: flex !important;
+    }
   </style>
 </head>
-<body class="bg-black text-slate-100 flex flex-col justify-between p-4 md:p-6 lg:p-8 select-none relative dimmed">
+<body class="bg-black text-slate-100 flex flex-col justify-between p-4 md:p-6 lg:p-8 select-none relative dimmed mode-fullscreen">
 
   <!-- Anti-Burn-In Canvas Shift Wrapper -->
   <div id="burnInWrapper" class="w-full h-full flex flex-col justify-between">
 
-    <!-- Top Status Bar (Subtle & Minimal) -->
-    <header class="flex items-center justify-between text-xs tracking-wider text-zinc-500 font-mono">
+    <!-- Top Status Bar (Subtle & Minimal, Auto-hides in fullscreen) -->
+    <header class="hud-element flex items-center justify-between text-xs tracking-wider text-zinc-500 font-mono">
       <div class="flex items-center gap-3">
         <span id="wakeLockStatus" class="flex items-center gap-1.5 text-emerald-500 transition-colors" title="Screen Wake Lock Active">
           <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
@@ -124,7 +315,7 @@
         </span>
       </div>
 
-      <div class="flex items-center gap-3">
+      <div class="flex items-center gap-1.5 sm:gap-2">
         <!-- Next Alarm Pill (if active) -->
         <span id="nextAlarmBadge" class="hidden items-center gap-1.5 px-2 py-0.5 rounded-full bg-zinc-900 border border-zinc-800 text-amber-400 text-[11px]">
           ⏰ <span id="nextAlarmTime">07:00 AM</span>
@@ -135,38 +326,58 @@
           🔋 <span id="batteryPercent">--%</span>
         </span>
 
-        <!-- Quick Controls -->
-        <button id="btnDimmer" title="Toggle Night Dimmer" class="p-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white transition">
+        <!-- Layout Mode Switcher (Fullscreen vs Dashboard) -->
+        <button id="btnToggleLayout" title="Switch between Fullscreen Time and Split Dashboard" class="px-2.5 py-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white transition flex items-center gap-1.5 text-xs font-semibold cursor-pointer">
+          <span id="layoutModeIcon">🗂️</span>
+          <span id="layoutModeLabel" class="hidden md:inline">Dashboard</span>
+        </button>
+
+        <!-- Quick Header Utilities -->
+        <button id="btnHeaderTimer" title="Countdown Timer" class="p-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white transition cursor-pointer">
+          ⏳
+        </button>
+        <button id="btnHeaderStopwatch" title="Stopwatch" class="p-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white transition cursor-pointer">
+          ⏱️
+        </button>
+        <button id="btnHeaderAlarm" title="Alarms" class="p-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white transition cursor-pointer">
+          ⏰
+        </button>
+        <button id="btnDimmer" title="Toggle Night Dimmer" class="p-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white transition cursor-pointer">
           🌙
         </button>
-        <button id="btnFullscreen" title="Fullscreen" class="p-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white transition">
+        <button id="btnFullscreen" title="Toggle Browser Fullscreen (F11 / Double-tap)" class="p-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white transition cursor-pointer">
           ⛶
         </button>
-        <button id="btnSettings" title="Settings" class="p-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white transition">
+        <button id="btnSettings" title="Settings" class="p-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white transition cursor-pointer">
           ⚙️
         </button>
       </div>
     </header>
 
-    <!-- Main Landscape Split-View Dashboard -->
+    <!-- Main Landscape View Area -->
     <main class="flex-1 flex flex-row items-center justify-between gap-4 md:gap-8 my-auto">
 
-      <!-- LEFT: Massive Clock & Date Zone -->
-      <section id="clockZone" class="flex-1 flex flex-col justify-center items-start pl-2 md:pl-4">
+      <!-- LEFT: Clock & Date Zone (Expands to 100% Fullscreen in Fullscreen Mode) -->
+      <section id="clockZone" class="flex-1 flex flex-col justify-center items-start pl-2 md:pl-4 transition-all duration-300">
         <!-- Time Row -->
-        <div class="flex items-baseline gap-2 md:gap-4 font-num font-bold tracking-tight glow-text" style="color: var(--theme-color);">
-          <span id="clockTime" class="text-7xl sm:text-8xl md:text-9xl lg:text-[10.5rem] leading-none">12:00</span>
-          <div class="flex flex-col items-start gap-1 pb-2 sm:pb-4 md:pb-6">
+        <div id="timeRow" class="flex items-baseline gap-2 md:gap-4 font-num font-bold tracking-tight glow-text" style="color: var(--theme-color);">
+          <span id="clockTime" class="text-7xl sm:text-8xl md:text-9xl lg:text-[10.5rem] leading-none transition-all duration-300">12:00</span>
+          <div id="clockAuxStack" class="flex flex-col items-start gap-1 pb-2 sm:pb-3 md:pb-5">
             <span id="clockAmPm" class="text-xl sm:text-2xl md:text-3xl font-semibold uppercase tracking-widest text-zinc-400">AM</span>
             <span id="clockSeconds" class="text-2xl sm:text-3xl md:text-4xl font-light text-zinc-500">00</span>
           </div>
         </div>
 
-        <!-- Date Row -->
-        <div class="mt-2 md:mt-3 flex flex-wrap items-center gap-2 md:gap-3 text-zinc-400 text-base sm:text-lg md:text-2xl font-medium tracking-wide">
+        <!-- Date & Compact Weather Sub-line -->
+        <div id="clockSubLine" class="mt-3 md:mt-5 flex flex-wrap items-center gap-2 md:gap-3 text-zinc-400 text-base sm:text-lg md:text-2xl font-medium tracking-wide transition-all duration-300">
           <span id="clockWeekday" class="font-semibold text-zinc-200">Monday</span>
           <span class="text-zinc-600">•</span>
           <span id="clockDate">November 23, 2026</span>
+          <button id="subWeatherPill" title="View Weather Details / Switch to Dashboard" class="hidden items-center gap-1.5 px-3 py-1 rounded-full bg-zinc-900/90 hover:bg-zinc-800 border border-zinc-800 text-xs sm:text-sm md:text-base text-zinc-300 transition cursor-pointer">
+            <span id="subWeatherIcon">☀️</span>
+            <span id="subWeatherTemp">--°C</span>
+            <span id="subWeatherDesc" class="text-zinc-400 hidden sm:inline">Clear</span>
+          </button>
         </div>
       </section>
 
@@ -245,9 +456,9 @@
       </section>
     </main>
 
-    <!-- Bottom Info Bar -->
-    <footer class="flex items-center justify-between text-[11px] text-zinc-600 font-mono">
-      <span>Realme 1 Enclosure Display Mode</span>
+    <!-- Bottom Info Bar (Auto-hides in fullscreen) -->
+    <footer class="hud-element flex items-center justify-between text-[11px] text-zinc-600 font-mono">
+      <span>Realme 1 Fullscreen Clock Mode • Tap anywhere to wake controls • Double-tap for browser fullscreen</span>
       <span class="flex items-center gap-2">
         <span id="burnInIndicator" title="Pixel shift protection active">🔒 Pixel-Shift Protected</span>
         <span>•</span>
@@ -413,7 +624,14 @@
 
       <!-- Clock Format Options -->
       <div class="space-y-3 pt-2 border-t border-zinc-900">
-        <label class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Clock Options</label>
+        <label class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Clock & Layout Options</label>
+        <div class="flex items-center justify-between">
+          <span class="text-sm text-zinc-300">Display Layout</span>
+          <select id="selLayoutMode" class="bg-zinc-900 border border-zinc-800 rounded-lg px-2.5 py-1 text-sm text-zinc-200">
+            <option value="fullscreen">Fullscreen Time (Giant Clock)</option>
+            <option value="dashboard">Split Dashboard (Clock + Drawer)</option>
+          </select>
+        </div>
         <div class="flex items-center justify-between">
           <span class="text-sm text-zinc-300">24-Hour Time Format</span>
           <input id="chk24h" type="checkbox" class="w-5 h-5 accent-amber-500 cursor-pointer" />
@@ -451,6 +669,18 @@
           <span>Keep Screen Awake</span>
           <span class="text-emerald-400 font-semibold">WakeLock Active</span>
         </div>
+      </div>
+
+      <!-- Native Android App Download -->
+      <div class="space-y-2 pt-2 border-t border-zinc-900">
+        <label class="text-xs font-semibold text-zinc-400 uppercase tracking-wider">Dedicated Android Kiosk App</label>
+        <a href="./SmartClock-v1.0.0.apk" download class="w-full py-2.5 px-4 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 flex items-center justify-between text-xs font-semibold text-emerald-400 transition cursor-pointer">
+          <span class="flex items-center gap-2">
+            <span>📱</span>
+            <span>Download SmartClock.apk</span>
+          </span>
+          <span class="text-[10px] text-zinc-500 font-mono">27 KB • Signed</span>
+        </a>
       </div>
     </div>
   </div>
@@ -800,6 +1030,14 @@
       document.getElementById('weatherDesc').textContent = wInfo.desc;
       document.getElementById('weatherIcon').textContent = wInfo.icon;
       document.getElementById('locCityName').textContent = userCity || 'Local';
+
+      // Update Fullscreen Mode Sub-bar Weather Pill
+      const subTemp = document.getElementById('subWeatherTemp');
+      const subIcon = document.getElementById('subWeatherIcon');
+      const subDesc = document.getElementById('subWeatherDesc');
+      if (subTemp) subTemp.textContent = `${Math.round(t)}°${tempUnit === 'f' ? 'F' : 'C'}`;
+      if (subIcon) subIcon.textContent = wInfo.icon;
+      if (subDesc) subDesc.textContent = wInfo.desc;
     }
 
     function getUserLocation() {
@@ -1168,17 +1406,109 @@
       }
     });
 
-    // Fullscreen Toggle
-    document.getElementById('btnFullscreen').addEventListener('click', () => {
-      if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(e => console.warn(e));
-        if (screen.orientation && screen.orientation.lock) {
-          screen.orientation.lock('landscape').catch(e => console.warn(e));
-        }
+    // -------------------------------------------------------------------------
+    // FULLSCREEN TIME & LAYOUT MANAGER
+    // -------------------------------------------------------------------------
+    let currentLayout = localStorage.getItem('smartclock_layout_mode') || 'fullscreen';
+    let hudTimeout = null;
+
+    function setLayoutMode(mode) {
+      currentLayout = mode;
+      localStorage.setItem('smartclock_layout_mode', mode);
+      const body = document.body;
+      const icon = document.getElementById('layoutModeIcon');
+      const label = document.getElementById('layoutModeLabel');
+      const btnToggle = document.getElementById('btnToggleLayout');
+      const selLayout = document.getElementById('selLayoutMode');
+
+      if (selLayout) selLayout.value = mode;
+
+      if (mode === 'fullscreen') {
+        body.classList.remove('mode-dashboard');
+        body.classList.add('mode-fullscreen');
+        if (icon) icon.textContent = '🗂️';
+        if (label) label.textContent = 'Dashboard';
+        if (btnToggle) btnToggle.title = 'Switch to Split Dashboard';
+        resetHudTimer();
       } else {
-        document.exitFullscreen().catch(e => console.warn(e));
+        body.classList.remove('mode-fullscreen', 'hud-hidden');
+        body.classList.add('mode-dashboard');
+        if (icon) icon.textContent = '🔲';
+        if (label) label.textContent = 'Fullscreen';
+        if (btnToggle) btnToggle.title = 'Switch to Fullscreen Time';
+        clearTimeout(hudTimeout);
+      }
+    }
+
+    // Auto-Hiding HUD in Fullscreen Mode
+    function resetHudTimer() {
+      if (currentLayout !== 'fullscreen') return;
+      document.body.classList.remove('hud-hidden');
+      clearTimeout(hudTimeout);
+      hudTimeout = setTimeout(() => {
+        const hasOpenModal = Object.values(modals).some(m => !m.classList.contains('hidden'));
+        if (!hasOpenModal && currentLayout === 'fullscreen') {
+          document.body.classList.add('hud-hidden');
+        }
+      }, 3500);
+    }
+
+    ['mousemove', 'pointermove', 'touchstart', 'click', 'keydown'].forEach(evt => {
+      window.addEventListener(evt, () => {
+        resetHudTimer();
+      }, { passive: true });
+    });
+
+    // Native Browser Fullscreen Toggle
+    function toggleBrowserFullscreen() {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().then(() => {
+          if (screen.orientation && screen.orientation.lock) {
+            screen.orientation.lock('landscape').catch(() => {});
+          }
+        }).catch(e => console.warn('Fullscreen request failed:', e));
+      } else {
+        document.exitFullscreen().catch(e => console.warn('Exit fullscreen failed:', e));
+      }
+    }
+
+    document.getElementById('btnFullscreen').addEventListener('click', toggleBrowserFullscreen);
+
+    // Double-tap or click on clock zone
+    let lastClockTap = 0;
+    document.getElementById('clockZone').addEventListener('click', (e) => {
+      if (e.target.closest('#subWeatherPill')) {
+        setLayoutMode('dashboard');
+        return;
+      }
+      const now = Date.now();
+      if (now - lastClockTap < 350) {
+        toggleBrowserFullscreen();
+      } else {
+        resetHudTimer();
+      }
+      lastClockTap = now;
+    });
+
+    // Keyboard shortcuts: F for browser fullscreen, D for layout mode
+    window.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+      if (e.key === 'f' || e.key === 'F') {
+        toggleBrowserFullscreen();
+      } else if (e.key === 'd' || e.key === 'D') {
+        setLayoutMode(currentLayout === 'fullscreen' ? 'dashboard' : 'fullscreen');
       }
     });
+
+    // Layout Toggle Button
+    document.getElementById('btnToggleLayout').addEventListener('click', () => {
+      setLayoutMode(currentLayout === 'fullscreen' ? 'dashboard' : 'fullscreen');
+    });
+
+    // Header Quick Utility Buttons
+    document.getElementById('btnHeaderTimer').addEventListener('click', () => openModal('timer'));
+    document.getElementById('btnHeaderStopwatch').addEventListener('click', () => openModal('stopwatch'));
+    document.getElementById('btnHeaderAlarm').addEventListener('click', () => openModal('alarm'));
 
     // Battery API
     if ('getBattery' in navigator) {
@@ -1214,11 +1544,13 @@
       });
       document.getElementById('tabClock').classList.remove('bg-zinc-900', 'text-zinc-400');
       document.getElementById('tabClock').classList.add('bg-zinc-800', 'text-white');
+      resetHudTimer();
     }
 
     function openModal(name) {
       closeAllModals();
       if (modals[name]) modals[name].classList.remove('hidden');
+      document.body.classList.remove('hud-hidden');
     }
 
     document.getElementById('tabClock').addEventListener('click', closeAllModals);
@@ -1249,6 +1581,14 @@
       updateClock();
     });
 
+    const selLayout = document.getElementById('selLayoutMode');
+    if (selLayout) {
+      selLayout.value = currentLayout;
+      selLayout.addEventListener('change', () => {
+        setLayoutMode(selLayout.value);
+      });
+    }
+
     const selTemp = document.getElementById('selTempUnit');
     selTemp.value = tempUnit;
     selTemp.addEventListener('change', () => {
@@ -1256,6 +1596,9 @@
       localStorage.setItem('smartclock_temp_unit', tempUnit);
       fetchWeather();
     });
+
+    // Initialize layout mode
+    setLayoutMode(currentLayout);
   </script>
 </body>
 </html>
