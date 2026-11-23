@@ -102,6 +102,8 @@ public class MainActivity extends Activity {
 
     @Override
     public void onBackPressed() {
-        // Stay in fullscreen clock mode
+        if (webView != null) {
+            webView.evaluateJavascript("if (typeof closeAllModals === 'function') closeAllModals();", null);
+        }
     }
 }

@@ -457,8 +457,9 @@
     </main>
 
     <!-- Bottom Info Bar (Auto-hides in fullscreen) -->
+    <!-- Bottom Info Bar (Auto-hides in fullscreen) -->
     <footer class="hud-element flex items-center justify-between text-[11px] text-zinc-600 font-mono">
-      <span>Realme 1 Fullscreen Clock Mode • Tap anywhere to wake controls • Double-tap for browser fullscreen</span>
+      <span>Always-On Fullscreen Clock • Tap anywhere to wake controls • Double-tap for browser fullscreen</span>
       <span class="flex items-center gap-2">
         <span id="burnInIndicator" title="Pixel shift protection active">🔒 Pixel-Shift Protected</span>
         <span>•</span>
@@ -469,88 +470,103 @@
   </div>
 
   <!-- ======================================================================= -->
-  <!-- MODAL 1: TIMER PANEL -->
+  <!-- MODAL 1: TIMER PANEL (Optimized for Mobile Landscape & Touch) -->
   <!-- ======================================================================= -->
-  <div id="modalTimer" class="fixed inset-0 bg-black/90 backdrop-blur-md z-40 hidden flex items-center justify-center p-4">
-    <div class="bg-zinc-950 border border-zinc-800 rounded-3xl p-6 w-full max-w-md flex flex-col items-center gap-6 shadow-2xl">
-      <div class="w-full flex items-center justify-between border-b border-zinc-900 pb-3">
-        <h3 class="text-lg font-bold flex items-center gap-2 text-zinc-100">
+  <div id="modalTimer" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-2 sm:p-4 cursor-pointer">
+    <div class="bg-zinc-950 border border-zinc-800 rounded-2xl sm:rounded-3xl p-4 sm:p-5 w-full max-w-xl max-h-[92vh] overflow-y-auto flex flex-col gap-2.5 shadow-2xl cursor-default" onclick="event.stopPropagation()">
+      <!-- Sticky Header: Always pinned and reachable -->
+      <div class="sticky top-0 bg-zinc-950/95 backdrop-blur-sm z-10 w-full flex items-center justify-between border-b border-zinc-900 pb-2">
+        <h3 class="text-sm sm:text-base font-bold flex items-center gap-2 text-zinc-100">
           <span>⏳</span> Countdown Timer
         </h3>
-        <button id="closeTimer" class="text-zinc-500 hover:text-white text-xl">✕</button>
+        <button id="closeTimer" title="Close Timer" class="py-1 px-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white text-xs font-semibold flex items-center gap-1 cursor-pointer transition">
+          <span class="text-sm font-bold">✕</span> <span>Close</span>
+        </button>
       </div>
 
-      <!-- Circular Timer Display -->
-      <div class="relative w-48 h-48 flex items-center justify-center">
-        <svg class="w-full h-full -rotate-90" viewBox="0 0 100 100">
-          <circle cx="50" cy="50" r="44" class="stroke-zinc-800" stroke-width="6" fill="transparent" />
-          <circle id="timerProgressRing" cx="50" cy="50" r="44" stroke="currentColor" stroke-width="6" fill="transparent"
-                  stroke-dasharray="276.46" stroke-dashoffset="0" stroke-linecap="round"
-                  style="color: var(--theme-color);" class="transition-all duration-300" />
-        </svg>
-        <div class="absolute flex flex-col items-center">
-          <span id="timerDisplay" class="text-4xl font-bold font-num tracking-tight">05:00</span>
-          <span id="timerLabel" class="text-xs text-zinc-500 font-medium">Ready</span>
+      <!-- 2-Column Responsive Body for Landscape Screens -->
+      <div class="flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6 w-full py-1">
+        <!-- Circular Timer Display (Left Column) -->
+        <div class="relative w-32 h-32 sm:w-36 sm:h-36 shrink-0 flex items-center justify-center">
+          <svg class="w-full h-full -rotate-90" viewBox="0 0 100 100">
+            <circle cx="50" cy="50" r="44" class="stroke-zinc-800" stroke-width="6" fill="transparent" />
+            <circle id="timerProgressRing" cx="50" cy="50" r="44" stroke="currentColor" stroke-width="6" fill="transparent"
+                    stroke-dasharray="276.46" stroke-dashoffset="0" stroke-linecap="round"
+                    style="color: var(--theme-color);" class="transition-all duration-300" />
+          </svg>
+          <div class="absolute flex flex-col items-center">
+            <span id="timerDisplay" class="text-2xl sm:text-3xl font-bold font-num tracking-tight">05:00</span>
+            <span id="timerLabel" class="text-[10px] text-zinc-500 font-medium">Ready</span>
+          </div>
         </div>
-      </div>
 
-      <!-- Quick Preset Buttons -->
-      <div class="grid grid-cols-4 gap-2 w-full">
-        <button class="timerPreset py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300" data-seconds="60">+1m</button>
-        <button class="timerPreset py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300" data-seconds="180">+3m</button>
-        <button class="timerPreset py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300" data-seconds="300">+5m</button>
-        <button class="timerPreset py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300" data-seconds="600">+10m</button>
-        <button class="timerPreset py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300" data-seconds="900">+15m</button>
-        <button class="timerPreset py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300" data-seconds="1500">+25m</button>
-        <button class="timerPreset py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300" data-seconds="1800">+30m</button>
-        <button class="timerPreset py-2 rounded-xl bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300" data-seconds="3600">+1h</button>
-      </div>
+        <!-- Controls & Presets (Right Column) -->
+        <div class="flex-1 flex flex-col gap-2 w-full">
+          <!-- Quick Preset Buttons -->
+          <div class="grid grid-cols-4 gap-1.5 w-full">
+            <button class="timerPreset py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300 transition cursor-pointer" data-seconds="60">+1m</button>
+            <button class="timerPreset py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300 transition cursor-pointer" data-seconds="180">+3m</button>
+            <button class="timerPreset py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300 transition cursor-pointer" data-seconds="300">+5m</button>
+            <button class="timerPreset py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300 transition cursor-pointer" data-seconds="600">+10m</button>
+            <button class="timerPreset py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300 transition cursor-pointer" data-seconds="900">+15m</button>
+            <button class="timerPreset py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300 transition cursor-pointer" data-seconds="1500">+25m</button>
+            <button class="timerPreset py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300 transition cursor-pointer" data-seconds="1800">+30m</button>
+            <button class="timerPreset py-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-xs font-semibold text-zinc-300 transition cursor-pointer" data-seconds="3600">+1h</button>
+          </div>
 
-      <!-- Actions -->
-      <div class="flex items-center gap-3 w-full">
-        <button id="btnTimerToggle" class="flex-1 py-3 rounded-xl font-bold text-black text-sm transition shadow-lg" style="background-color: var(--theme-color);">
-          Start
-        </button>
-        <button id="btnTimerReset" class="py-3 px-6 rounded-xl bg-zinc-800 hover:bg-zinc-700 font-semibold text-zinc-300 text-sm transition">
-          Reset
-        </button>
+          <!-- Actions -->
+          <div class="flex items-center gap-2 w-full pt-1">
+            <button id="btnTimerToggle" class="flex-1 py-2 sm:py-2.5 rounded-xl font-bold text-black text-xs sm:text-sm transition shadow-lg cursor-pointer" style="background-color: var(--theme-color);">
+              Start
+            </button>
+            <button id="btnTimerReset" class="py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl bg-zinc-800 hover:bg-zinc-700 font-semibold text-zinc-300 text-xs sm:text-sm transition cursor-pointer">
+              Reset
+            </button>
+            <button id="btnTimerCloseBottom" class="py-2 sm:py-2.5 px-3 sm:px-4 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 font-semibold text-zinc-400 hover:text-white text-xs sm:text-sm transition cursor-pointer">
+              Close
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- ======================================================================= -->
-  <!-- MODAL 2: STOPWATCH PANEL -->
+  <!-- MODAL 2: STOPWATCH PANEL (Optimized for Mobile Landscape) -->
   <!-- ======================================================================= -->
-  <div id="modalStopwatch" class="fixed inset-0 bg-black/90 backdrop-blur-md z-40 hidden flex items-center justify-center p-4">
-    <div class="bg-zinc-950 border border-zinc-800 rounded-3xl p-6 w-full max-w-md flex flex-col items-center gap-5 shadow-2xl">
-      <div class="w-full flex items-center justify-between border-b border-zinc-900 pb-3">
-        <h3 class="text-lg font-bold flex items-center gap-2 text-zinc-100">
+  <div id="modalStopwatch" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-2 sm:p-4 cursor-pointer">
+    <div class="bg-zinc-950 border border-zinc-800 rounded-2xl sm:rounded-3xl p-4 sm:p-5 w-full max-w-xl max-h-[92vh] overflow-y-auto flex flex-col gap-2.5 shadow-2xl cursor-default" onclick="event.stopPropagation()">
+      <div class="sticky top-0 bg-zinc-950/95 backdrop-blur-sm z-10 w-full flex items-center justify-between border-b border-zinc-900 pb-2">
+        <h3 class="text-sm sm:text-base font-bold flex items-center gap-2 text-zinc-100">
           <span>⏱️</span> Stopwatch
         </h3>
-        <button id="closeStopwatch" class="text-zinc-500 hover:text-white text-xl">✕</button>
-      </div>
-
-      <div class="py-4 text-center">
-        <span id="stopwatchDisplay" class="text-6xl font-bold font-num tracking-tight" style="color: var(--theme-color);">00:00.00</span>
-      </div>
-
-      <!-- Controls -->
-      <div class="flex items-center gap-3 w-full">
-        <button id="btnSwStart" class="flex-1 py-3 rounded-xl font-bold text-black text-sm transition" style="background-color: var(--theme-color);">
-          Start
-        </button>
-        <button id="btnSwLap" class="py-3 px-5 rounded-xl bg-zinc-900 hover:bg-zinc-800 font-semibold text-zinc-300 text-sm transition" disabled>
-          Lap
-        </button>
-        <button id="btnSwReset" class="py-3 px-5 rounded-xl bg-zinc-800 hover:bg-zinc-700 font-semibold text-zinc-300 text-sm transition">
-          Reset
+        <button id="closeStopwatch" title="Close Stopwatch" class="py-1 px-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white text-xs font-semibold flex items-center gap-1 cursor-pointer transition">
+          <span class="text-sm font-bold">✕</span> <span>Close</span>
         </button>
       </div>
 
-      <!-- Laps List -->
-      <div class="w-full max-h-40 overflow-y-auto space-y-1.5 pr-1 font-mono text-xs">
-        <div id="lapsContainer" class="space-y-1">
-          <!-- Laps will appear here -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 w-full py-1">
+        <div class="flex-1 text-center sm:text-left">
+          <span id="stopwatchDisplay" class="text-4xl sm:text-5xl font-bold font-num tracking-tight block" style="color: var(--theme-color);">00:00.00</span>
+          <div class="flex items-center gap-2 mt-3 justify-center sm:justify-start">
+            <button id="btnSwStart" class="py-2 px-4 rounded-xl font-bold text-black text-xs sm:text-sm transition cursor-pointer" style="background-color: var(--theme-color);">
+              Start
+            </button>
+            <button id="btnSwLap" class="py-2 px-3.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 font-semibold text-zinc-300 text-xs sm:text-sm transition cursor-pointer" disabled>
+              Lap
+            </button>
+            <button id="btnSwReset" class="py-2 px-3.5 rounded-xl bg-zinc-800 hover:bg-zinc-700 font-semibold text-zinc-300 text-xs sm:text-sm transition cursor-pointer">
+              Reset
+            </button>
+            <button id="btnSwCloseBottom" class="py-2 px-3.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 font-semibold text-zinc-400 hover:text-white text-xs sm:text-sm transition cursor-pointer">
+              Close
+            </button>
+          </div>
+        </div>
+
+        <!-- Laps List -->
+        <div class="w-full sm:w-60 max-h-32 overflow-y-auto border border-zinc-900 rounded-xl p-2 font-mono text-xs">
+          <div id="lapsContainer" class="space-y-1"></div>
         </div>
       </div>
     </div>
@@ -559,25 +575,27 @@
   <!-- ======================================================================= -->
   <!-- MODAL 3: ALARMS PANEL -->
   <!-- ======================================================================= -->
-  <div id="modalAlarm" class="fixed inset-0 bg-black/90 backdrop-blur-md z-40 hidden flex items-center justify-center p-4">
-    <div class="bg-zinc-950 border border-zinc-800 rounded-3xl p-6 w-full max-w-md flex flex-col gap-5 shadow-2xl">
-      <div class="w-full flex items-center justify-between border-b border-zinc-900 pb-3">
-        <h3 class="text-lg font-bold flex items-center gap-2 text-zinc-100">
+  <div id="modalAlarm" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-2 sm:p-4 cursor-pointer">
+    <div class="bg-zinc-950 border border-zinc-800 rounded-2xl sm:rounded-3xl p-4 sm:p-5 w-full max-w-lg max-h-[92vh] overflow-y-auto flex flex-col gap-3 shadow-2xl cursor-default" onclick="event.stopPropagation()">
+      <div class="sticky top-0 bg-zinc-950/95 backdrop-blur-sm z-10 w-full flex items-center justify-between border-b border-zinc-900 pb-2">
+        <h3 class="text-sm sm:text-base font-bold flex items-center gap-2 text-zinc-100">
           <span>⏰</span> Daily Alarms
         </h3>
-        <button id="closeAlarm" class="text-zinc-500 hover:text-white text-xl">✕</button>
+        <button id="closeAlarm" title="Close Alarms" class="py-1 px-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white text-xs font-semibold flex items-center gap-1 cursor-pointer transition">
+          <span class="text-sm font-bold">✕</span> <span>Close</span>
+        </button>
       </div>
 
       <!-- Add New Alarm Row -->
       <div class="flex items-center gap-2">
-        <input id="alarmTimeInput" type="time" value="07:00" class="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-white font-num font-semibold text-center text-lg focus:outline-none focus:border-amber-500" />
-        <button id="btnAddAlarm" class="py-2.5 px-4 rounded-xl font-bold text-black text-sm transition" style="background-color: var(--theme-color);">
+        <input id="alarmTimeInput" type="time" value="07:00" class="flex-1 bg-zinc-900 border border-zinc-800 rounded-xl px-3 py-2 text-white font-num font-semibold text-center text-base focus:outline-none focus:border-amber-500" />
+        <button id="btnAddAlarm" class="py-2 px-4 rounded-xl font-bold text-black text-xs sm:text-sm transition cursor-pointer" style="background-color: var(--theme-color);">
           + Add
         </button>
       </div>
 
       <!-- Alarms List -->
-      <div id="alarmsList" class="max-h-56 overflow-y-auto space-y-2 pr-1">
+      <div id="alarmsList" class="max-h-40 overflow-y-auto space-y-2 pr-1">
         <!-- Rendered via JS -->
       </div>
     </div>
@@ -586,13 +604,15 @@
   <!-- ======================================================================= -->
   <!-- MODAL 4: SETTINGS & THEMES -->
   <!-- ======================================================================= -->
-  <div id="modalSettings" class="fixed inset-0 bg-black/90 backdrop-blur-md z-40 hidden flex items-center justify-center p-4">
-    <div class="bg-zinc-950 border border-zinc-800 rounded-3xl p-6 w-full max-w-md flex flex-col gap-5 shadow-2xl max-h-[90vh] overflow-y-auto">
-      <div class="w-full flex items-center justify-between border-b border-zinc-900 pb-3">
-        <h3 class="text-lg font-bold flex items-center gap-2 text-zinc-100">
+  <div id="modalSettings" class="fixed inset-0 bg-black/90 backdrop-blur-md z-50 hidden flex items-center justify-center p-2 sm:p-4 cursor-pointer">
+    <div class="bg-zinc-950 border border-zinc-800 rounded-2xl sm:rounded-3xl p-4 sm:p-6 w-full max-w-lg flex flex-col gap-4 shadow-2xl max-h-[92vh] overflow-y-auto cursor-default" onclick="event.stopPropagation()">
+      <div class="sticky top-0 bg-zinc-950/95 backdrop-blur-sm z-10 w-full flex items-center justify-between border-b border-zinc-900 pb-2">
+        <h3 class="text-sm sm:text-base font-bold flex items-center gap-2 text-zinc-100">
           <span>⚙️</span> Display & Weather Settings
         </h3>
-        <button id="closeSettings" class="text-zinc-500 hover:text-white text-xl">✕</button>
+        <button id="closeSettings" title="Close Settings" class="py-1 px-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 hover:text-white text-xs font-semibold flex items-center gap-1 cursor-pointer transition">
+          <span class="text-sm font-bold">✕</span> <span>Close</span>
+        </button>
       </div>
 
       <!-- Color Theme Presets -->
@@ -679,9 +699,14 @@
             <span>📱</span>
             <span>Download SmartClock.apk</span>
           </span>
-          <span class="text-[10px] text-zinc-500 font-mono">27 KB • Signed</span>
+          <span class="text-[10px] text-zinc-500 font-mono">28 KB • Signed</span>
         </a>
       </div>
+
+      <!-- Bottom Close Button -->
+      <button id="btnCloseSettingsBottom" class="w-full py-2.5 rounded-xl bg-zinc-900 hover:bg-zinc-800 border border-zinc-800 font-semibold text-zinc-300 hover:text-white text-xs sm:text-sm transition cursor-pointer">
+        Done / Close Settings
+      </button>
     </div>
   </div>
 
@@ -1546,6 +1571,7 @@
       document.getElementById('tabClock').classList.add('bg-zinc-800', 'text-white');
       resetHudTimer();
     }
+    window.closeAllModals = closeAllModals;
 
     function openModal(name) {
       closeAllModals();
@@ -1563,6 +1589,32 @@
     document.getElementById('closeStopwatch').addEventListener('click', closeAllModals);
     document.getElementById('closeAlarm').addEventListener('click', closeAllModals);
     document.getElementById('closeSettings').addEventListener('click', closeAllModals);
+
+    // Secondary bottom close / dismiss buttons
+    const btnTimerCloseBottom = document.getElementById('btnTimerCloseBottom');
+    if (btnTimerCloseBottom) btnTimerCloseBottom.addEventListener('click', closeAllModals);
+    const btnSwCloseBottom = document.getElementById('btnSwCloseBottom');
+    if (btnSwCloseBottom) btnSwCloseBottom.addEventListener('click', closeAllModals);
+    const btnCloseSettingsBottom = document.getElementById('btnCloseSettingsBottom');
+    if (btnCloseSettingsBottom) btnCloseSettingsBottom.addEventListener('click', closeAllModals);
+
+    // Backdrop click dismiss: tapping anywhere outside the modal dialog closes it immediately
+    Object.values(modals).forEach(modalEl => {
+      if (modalEl) {
+        modalEl.addEventListener('click', (e) => {
+          if (e.target === modalEl) {
+            closeAllModals();
+          }
+        });
+      }
+    });
+
+    // Escape key closes modals
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeAllModals();
+      }
+    });
 
     // Settings checkboxes
     const chk24h = document.getElementById('chk24h');
