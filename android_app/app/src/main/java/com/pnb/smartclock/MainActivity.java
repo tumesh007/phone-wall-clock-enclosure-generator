@@ -103,7 +103,7 @@ public class MainActivity extends Activity {
     @Override
     public void onBackPressed() {
         if (webView != null) {
-            webView.evaluateJavascript("if (typeof closeAllModals === 'function') closeAllModals();", null);
+            webView.evaluateJavascript("if (typeof closeAllModals === 'function') closeAllModals(); if (typeof currentDim !== 'undefined' && currentDim && typeof setNightMode === 'function') setNightMode(false);", null);
         }
     }
 }

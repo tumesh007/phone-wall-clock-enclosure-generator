@@ -252,11 +252,27 @@
       border-radius: 2px;
     }
 
-    /* Night Dimmer Filter */
-    .dimmed {
-      opacity: var(--dim-opacity);
-      filter: brightness(var(--dim-opacity));
-      transition: opacity 0.3s ease, filter 0.3s ease;
+    /* Night Dimmer Mode (Soft Bedside Ambient Glow) */
+    body.night-mode #burnInWrapper {
+      opacity: var(--dim-opacity, 0.22);
+      filter: brightness(0.9);
+      transition: opacity 0.35s ease, filter 0.35s ease;
+    }
+
+    /* Floating Persistent Night Mode Exit Switch */
+    #floatingNightModeExit {
+      opacity: 0.6;
+      transition: opacity 0.3s ease, transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.25);
+    }
+    #floatingNightModeExit:hover, #floatingNightModeExit:active {
+      opacity: 1.0 !important;
+      transform: scale(1.04);
+      border-color: #f59e0b;
+      box-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+    }
+    body.night-mode:not(.hud-hidden) #floatingNightModeExit {
+      opacity: 0.9;
     }
 
     /* =========================================================================
@@ -365,7 +381,7 @@
     }
   </style>
 </head>
-<body class="bg-black text-slate-100 flex flex-col justify-between p-4 md:p-6 lg:p-8 select-none relative dimmed mode-fullscreen">
+<body class="bg-black text-slate-100 flex flex-col justify-between p-4 md:p-6 lg:p-8 select-none relative mode-fullscreen">
 
   <!-- Anti-Burn-In Canvas Shift Wrapper -->
   <div id="burnInWrapper" class="w-full h-full flex flex-col justify-between">
@@ -533,8 +549,16 @@
         <a href="./index.html" class="hover:text-zinc-400 transition" target="_blank">3D Enclosure Studio ↗</a>
       </span>
     </footer>
-
   </div>
+
+  <!-- ======================================================================= -->
+  <!-- FLOATING PERSISTENT NIGHT MODE EXIT SWITCH -->
+  <!-- Always slightly visible in night mode so user can easily tap to restore -->
+  <!-- ======================================================================= -->
+  <button id="floatingNightModeExit" title="Exit Night Mode (Switch back to normal brightness)" class="hidden fixed top-3 right-3 sm:top-4 sm:right-4 z-40 items-center gap-1.5 px-3 py-1.5 rounded-full bg-zinc-900/90 hover:bg-zinc-800 border border-amber-500/50 hover:border-amber-400 text-amber-300 hover:text-amber-200 text-xs font-semibold shadow-xl backdrop-blur-md cursor-pointer select-none">
+    <span class="text-sm">☀️</span>
+    <span class="font-sans text-xs">Exit Night</span>
+  </button>
 
   <!-- ======================================================================= -->
   <!-- MODAL 1: TIMER PANEL (Optimized for Mobile Landscape & Touch) -->
@@ -726,6 +750,10 @@
         <div class="flex items-center justify-between">
           <span class="text-sm text-zinc-300">Display Seconds</span>
           <input id="chkSeconds" type="checkbox" checked class="w-5 h-5 accent-amber-500 cursor-pointer" />
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-sm text-zinc-300">Night Dimmer Mode (Soft Bedside Glow)</span>
+          <input id="chkNightMode" type="checkbox" class="w-5 h-5 accent-amber-500 cursor-pointer" />
         </div>
         <div class="flex items-center justify-between">
           <span class="text-sm text-zinc-300">Temperature Unit</span>
@@ -1466,8 +1494,6 @@
     // -------------------------------------------------------------------------
     // 9. THEMES, DIMMER & SETTINGS
     // -------------------------------------------------------------------------
-    let currentDim = false;
-
     document.querySelectorAll('.themeBtn').forEach(btn => {
       btn.addEventListener('click', () => {
         const col = btn.dataset.color;
@@ -1483,20 +1509,52 @@
       document.documentElement.style.setProperty('--theme-glow', savedTheme + '40');
     }
 
-    // Night Dimmer Mode (8% brightness, red night mode)
+    // Night Dimmer Mode (Soft Bedside Ambient Glow + Persistent Quick Exit Switch)
+    let currentDim = false;
     const btnDimmer = document.getElementById('btnDimmer');
-    btnDimmer.addEventListener('click', () => {
-      currentDim = !currentDim;
+    const floatingNightModeExit = document.getElementById('floatingNightModeExit');
+    const chkNightMode = document.getElementById('chkNightMode');
+
+    function setNightMode(active) {
+      currentDim = active;
+      const body = document.body;
+
       if (currentDim) {
-        document.documentElement.style.setProperty('--dim-opacity', '0.08');
-        btnDimmer.textContent = '☀️';
-        btnDimmer.className = 'p-1.5 rounded-lg bg-amber-500/20 border border-amber-500/50 text-amber-300 transition';
+        body.classList.add('night-mode');
+        document.documentElement.style.setProperty('--dim-opacity', '0.22');
+        if (btnDimmer) {
+          btnDimmer.textContent = '☀️';
+          btnDimmer.title = 'Exit Night Dimmer';
+          btnDimmer.className = 'p-1.5 rounded-lg bg-amber-500/25 border border-amber-500/60 text-amber-300 transition';
+        }
+        if (floatingNightModeExit) {
+          floatingNightModeExit.classList.remove('hidden');
+        }
+        if (chkNightMode) chkNightMode.checked = true;
       } else {
+        body.classList.remove('night-mode');
         document.documentElement.style.setProperty('--dim-opacity', '1.0');
-        btnDimmer.textContent = '🌙';
-        btnDimmer.className = 'p-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 transition';
+        if (btnDimmer) {
+          btnDimmer.textContent = '🌙';
+          btnDimmer.title = 'Toggle Night Dimmer';
+          btnDimmer.className = 'p-1.5 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 text-zinc-300 transition';
+        }
+        if (floatingNightModeExit) {
+          floatingNightModeExit.classList.add('hidden');
+        }
+        if (chkNightMode) chkNightMode.checked = false;
       }
-    });
+    }
+
+    function toggleNightMode() {
+      setNightMode(!currentDim);
+    }
+    window.setNightMode = setNightMode;
+    window.toggleNightMode = toggleNightMode;
+
+    if (btnDimmer) btnDimmer.addEventListener('click', toggleNightMode);
+    if (floatingNightModeExit) floatingNightModeExit.addEventListener('click', () => setNightMode(false));
+    if (chkNightMode) chkNightMode.addEventListener('change', () => setNightMode(chkNightMode.checked));
 
     // -------------------------------------------------------------------------
     // FULLSCREEN TIME & LAYOUT MANAGER
@@ -1582,13 +1640,15 @@
       lastClockTap = now;
     });
 
-    // Keyboard shortcuts: F for browser fullscreen, D for layout mode
+    // Keyboard shortcuts: F for browser fullscreen, D for layout mode, N for night mode
     window.addEventListener('keydown', (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
       if (e.key === 'f' || e.key === 'F') {
         toggleBrowserFullscreen();
       } else if (e.key === 'd' || e.key === 'D') {
         setLayoutMode(currentLayout === 'fullscreen' ? 'dashboard' : 'fullscreen');
+      } else if (e.key === 'n' || e.key === 'N') {
+        toggleNightMode();
       }
     });
 
@@ -1649,7 +1709,9 @@
 
     if (window.location.hash) {
       const initialTab = window.location.hash.replace('#', '').toLowerCase();
-      if (modals[initialTab]) {
+      if (initialTab === 'night') {
+        setNightMode(true);
+      } else if (modals[initialTab]) {
         openModal(initialTab);
       }
     }
@@ -1684,10 +1746,11 @@
       }
     });
 
-    // Escape key closes modals
+    // Escape key closes modals and exits night mode
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
         closeAllModals();
+        if (currentDim) setNightMode(false);
       }
     });
 
